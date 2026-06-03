@@ -1,17 +1,19 @@
 # Flor de Lis · Gestión de reservas
 
 App interna para gestionar las reservas del Complejo Flor de Lis (no la ve el cliente).
-Construida con **Vite + React**, base de datos y login con **Supabase**, y publicada con **Firebase Hosting**.
+**Vite + React**, base de datos y login con **Supabase**, y publicada con **Vercel**.
+
+- **Repositorio:** https://github.com/complejoflordelis/sitioflordelis
+- **Supabase (proyecto):** `gucgvudiomxhvxirwpks` → `https://gucgvudiomxhvxirwpks.supabase.co`
 
 ## Dos modos de funcionamiento
 
 | Modo | Cuándo | Datos | Login |
 |------|--------|-------|-------|
-| **Local** | Sin configurar Supabase (`.env` vacío) | En el navegador | No pide login |
+| **Local** | Sin ANON KEY en `.env` | En el navegador | No pide login |
 | **Nube** | Con Supabase configurado | Base de datos en la nube | Login real con roles |
 
-La app detecta sola en qué modo está. Podés desarrollar/probar en **Local** y, cuando cargás las
-claves de Supabase, pasa automáticamente a **Nube**.
+La app detecta sola en qué modo está. Probás en **Local** y, al cargar la `anon key`, pasa a **Nube**.
 
 ---
 
@@ -22,78 +24,71 @@ npm install      # solo la primera vez
 npm run dev      # abre http://localhost:5173
 ```
 
-Sin `.env`, arranca en **Modo local** con datos de ejemplo. Botón "Restaurar demo" para resetear.
+Sin `.env`, arranca en **Modo local** con datos de ejemplo (botón "Restaurar demo").
 
 ---
 
-## 2) Conectar la base de datos (Supabase)
+## 2) Subir el código a GitHub
 
-**a. Cuenta y proyecto**
-1. Creá el Gmail del negocio: **complejo.flordelis.admin@gmail.com**.
-2. Entrá a [supabase.com](https://supabase.com) con ese Gmail → **New project** (anotá la contraseña de la base).
-
-**b. Crear las tablas**
-3. En el panel de Supabase → **SQL Editor** → pegá y ejecutá el contenido de
-   [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql).
-   Esto crea las tablas `cabanas`, `reservas`, `profiles`, la seguridad (RLS) y el alta automática del admin.
-
-**c. Cerrar el registro público** (solo el admin crea usuarios)
-4. Supabase → **Authentication → Sign In / Providers → Email** → **desactivá "Allow new users to sign up"**.
-
-**d. Crear el usuario administrador**
-5. Supabase → **Authentication → Users → Add user** → email `complejo.flordelis.admin@gmail.com` + contraseña.
-   (Al crearlo, queda con rol **admin** automáticamente.)
-
-**e. Conectar la app a Supabase**
-6. Supabase → **Project Settings → API**: copiá **Project URL** y la **anon public key**.
-7. En la carpeta del proyecto, copiá `.env.example` como `.env` y completá:
-   ```
-   VITE_SUPABASE_URL=https://xxxxx.supabase.co
-   VITE_SUPABASE_ANON_KEY=eyJhbGci...
-   VITE_ADMIN_EMAIL=complejo.flordelis.admin@gmail.com
-   ```
-8. Reiniciá `npm run dev`. Ahora la app pide **login**.
-
-> La `anon key` es pública por diseño: la seguridad la dan las reglas RLS de la base. No es un secreto.
-
----
-
-## 3) Crear operadores (recepción) desde la app
-
-El alta de usuarios la hace una **Edge Function** (con permisos de servidor). Una sola vez:
+El repo ya está inicializado y con el remoto configurado. Solo falta autenticarte con una cuenta
+que tenga permiso sobre `complejoflordelis` y empujar:
 
 ```bash
-npm install -g supabase          # CLI de Supabase (si no la tenés)
+git push -u origin main
+```
+
+> Si te da **403 / Permission denied**: la sesión de git de esta PC es de otra cuenta de GitHub.
+> Soluciones: iniciar sesión con la cuenta del negocio (Git Credential Manager abre el navegador),
+> agregar tu usuario como *collaborator* del repo, o usar un *Personal Access Token* de la cuenta dueña.
+
+---
+
+## 3) Base de datos (Supabase — proyecto `gucgvudiomxhvxirwpks`)
+
+**a. Crear las tablas**
+1. Supabase → **SQL Editor** → pegá y ejecutá [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql).
+   Crea `cabanas`, `reservas`, `profiles`, la seguridad (RLS) y el alta automática del admin.
+
+**b. Cerrar el registro público** (solo el admin crea usuarios)
+2. **Authentication → Sign In / Providers → Email** → desactivá **"Allow new users to sign up"**.
+
+**c. Crear el usuario administrador**
+3. **Authentication → Users → Add user** → `complejo.flordelis.admin@gmail.com` + contraseña.
+   (Queda con rol **admin** automáticamente.)
+
+**d. Conectar la app**
+4. **Project Settings → API**: copiá la **anon public key**.
+5. Copiá `.env.example` como `.env` y completá la `VITE_SUPABASE_ANON_KEY` (la URL ya viene cargada).
+6. Reiniciá `npm run dev`: ahora la app pide **login**.
+
+> La `anon key` es pública por diseño: la seguridad la dan las reglas RLS. No es un secreto.
+> El acceso de Claude a este proyecto está en [`.mcp.json`](.mcp.json) (MCP de Supabase con scope al proyecto).
+
+**e. Alta de usuarios desde la app** (Edge Function)
+```bash
+npm install -g supabase
 supabase login
-supabase link --project-ref TU_PROJECT_REF
+supabase link --project-ref gucgvudiomxhvxirwpks
 supabase functions deploy admin-create-user
 ```
-
-Listo: entrando como admin, en la sección **Usuarios** podés crear operadores (nombre, email, contraseña, rol)
-y activarlos/desactivarlos. No hay registro público.
-
-> El `service_role` que usa la función ya está disponible para la función dentro de Supabase; **no** va en la app.
+Después, como admin, en la sección **Usuarios** podés crear operadores. No hay registro público.
 
 ---
 
-## 4) Publicar online (Firebase Hosting)
+## 4) Publicar online (Vercel)
 
-```bash
-npm install -g firebase-tools    # CLI de Firebase (si no la tenés)
-firebase login
-```
+La forma recomendada es conectar el repo de GitHub a Vercel (se redeploya solo en cada `git push`):
 
-1. Creá un proyecto en [console.firebase.google.com](https://console.firebase.google.com) (con el mismo Gmail).
-2. Poné su ID en [`.firebaserc`](.firebaserc) reemplazando `TU_PROYECTO_FIREBASE`.
-3. Compilá y publicá:
-   ```bash
-   npm run build
-   firebase deploy
-   ```
-4. Te queda una URL del estilo `https://tu-proyecto.web.app`. (Opcional: conectar un dominio propio
-   desde Firebase → Hosting → Add custom domain.)
+1. Entrá a [vercel.com/new](https://vercel.com/new) e **importá** `complejoflordelis/sitioflordelis`.
+2. Vercel detecta **Vite** automáticamente (build `npm run build`, salida `dist` — ya están en `vercel.json`).
+3. En **Settings → Environment Variables** cargá:
+   - `VITE_SUPABASE_URL` = `https://gucgvudiomxhvxirwpks.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY` = *(la anon key)*
+   - `VITE_ADMIN_EMAIL` = `complejo.flordelis.admin@gmail.com`
+4. **Deploy**. Queda en una URL `https://sitioflordelis.vercel.app` (podés agregar dominio propio).
 
-> Cada vez que cambies algo: `npm run build` y `firebase deploy`.
+> Alternativa por CLI: `npm i -g vercel` → `vercel` (preview) → `vercel --prod`.
+> Acordate de no olvidar las *Environment Variables* en Vercel: el `.env` local **no** se sube (está en `.gitignore`).
 
 ---
 
@@ -113,23 +108,24 @@ firebase login
 
 ```
 index.html                     ← entrada (Vite)
+vercel.json                    ← config de hosting (Vercel)
+.mcp.json                      ← MCP de Supabase (scope al proyecto)
+.env.example                   ← plantilla de configuración
 src/
   main.jsx, App.jsx            ← arranque + shell + navegación + gate de login
   styles.css
-  lib/        fdl.js (utilidades/cálculos), whatsapp.js, supabaseClient.js
-  components/ ui.jsx (logo, iconos, primitivos), RangePicker.jsx
+  lib/        fdl.js, whatsapp.js, supabaseClient.js
+  components/ ui.jsx, RangePicker.jsx
   pages/      Dashboard, ReservaForm, Calendario, ReservasTable, Cabanas, Usuarios
   auth/       AuthProvider.jsx, Login.jsx
   data/       useData.js (nube/local), mappers.js
 supabase/
   migrations/0001_init.sql                ← esquema + RLS + admin
   functions/admin-create-user/index.ts    ← alta de usuarios (solo admin)
-firebase.json, .firebaserc                ← hosting
-.env.example                              ← plantilla de configuración
-_prototipo-original/                      ← el diseño original (referencia)
+_prototipo-original/                       ← el diseño original (referencia)
 ```
 
 ## Cambiar el email del administrador
 
-Si usás otro email de admin, cambialo en **dos lugares**: la variable `VITE_ADMIN_EMAIL` del `.env`
-y la línea del trigger en `supabase/migrations/0001_init.sql` (`lower(new.email) = '...'`).
+Cambialo en **dos lugares**: la variable `VITE_ADMIN_EMAIL` (en `.env` y en Vercel) y la línea del
+trigger en `supabase/migrations/0001_init.sql` (`lower(new.email) = '...'`).
