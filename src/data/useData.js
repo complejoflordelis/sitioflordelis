@@ -95,32 +95,26 @@ export function useData(auth) {
   }
 
   async function updateReserva(id, k, v) {
-    let updated = null;
-    setReservas((prev) => prev.map((r) => {
-      if (r.id !== id) return r;
-      const n = Object.assign({}, r); n[k] = v;
-      if (k === "importeIngresado" || k === "modoImporte") n.importeTotal = FDL.importeTotal(n);
-      updated = n; return n;
-    }));
-    if (isConfigured && updated) {
-      const patch = reservaToRow(updated);
-      const { error: e } = await supabase.from("reservas").update(patch).eq("id", id);
+    const current = reservas.find((r) => r.id === id);
+    if (!current) return;
+    const n = Object.assign({}, current, { [k]: v });
+    if (k === "importeIngresado" || k === "modoImporte") n.importeTotal = FDL.importeTotal(n);
+    setReservas((prev) => prev.map((r) => (r.id === id ? n : r)));
+    if (isConfigured) {
+      const { error: e } = await supabase.from("reservas").update(reservaToRow(n)).eq("id", id);
       if (e) setError(e.message);
     }
   }
 
   // Actualiza varios campos de una reserva de una sola vez (ej: saldar saldo).
   async function patchReserva(id, patch) {
-    let updated = null;
-    setReservas((prev) => prev.map((r) => {
-      if (r.id !== id) return r;
-      const n = Object.assign({}, r, patch);
-      n.importeTotal = FDL.importeTotal(n);
-      updated = n; return n;
-    }));
-    if (isConfigured && updated) {
-      const row = reservaToRow(updated);
-      const { error: e } = await supabase.from("reservas").update(row).eq("id", id);
+    const current = reservas.find((r) => r.id === id);
+    if (!current) return;
+    const n = Object.assign({}, current, patch);
+    n.importeTotal = FDL.importeTotal(n);
+    setReservas((prev) => prev.map((r) => (r.id === id ? n : r)));
+    if (isConfigured) {
+      const { error: e } = await supabase.from("reservas").update(reservaToRow(n)).eq("id", id);
       if (e) setError(e.message);
     }
   }
@@ -145,16 +139,10 @@ export function useData(auth) {
   }
 
   async function updateCabana(id, k, v) {
-    let updated = null;
-    setCabanas((prev) => prev.map((c) => {
-      if (c.id !== id) return c;
-      const n = Object.assign({}, c); n[k] = v; updated = n; return n;
-    }));
-    if (isConfigured && updated) {
-      const patch = {}; const row = cabanaToRow(updated);
-      const map = { nombre: "nombre", maxPersonas: "max_personas", color: "color" };
-      patch[map[k] || k] = row[map[k] || k];
-      const { error: e } = await supabase.from("cabanas").update(patch).eq("id", id);
+    setCabanas((prev) => prev.map((c) => (c.id === id ? Object.assign({}, c, { [k]: v }) : c)));
+    if (isConfigured) {
+      const col = { nombre: "nombre", maxPersonas: "max_personas", color: "color" }[k] || k;
+      const { error: e } = await supabase.from("cabanas").update({ [col]: v }).eq("id", id);
       if (e) setError(e.message);
     }
   }

@@ -46,10 +46,6 @@ export function ReservasTable(props) {
     { key: "fechaDeposito", header: "Fecha seña", cell: (r) => dateCell(r, "fechaDeposito") },
     { key: "saldo", header: "Saldo", calc: true, num: true, cell: (r) => { const s = FDL.saldoPendiente(r); return <span style={{ color: s > 0 ? "oklch(0.55 0.12 40)" : "var(--ink-soft)" }}>{FDL.fmtMoney(s)}</span>; }, foot: (t) => FDL.fmtMoney(t.saldo) },
     { key: "pagadoSaldoA", header: "Pagó saldo", cell: (r) => textCell(r, "pagadoSaldoA", "—") },
-    { key: "saldoDestino", header: "Destino saldo", cell: (r) => (
-        <select className="cell sel" value={r.saldoDestino || ""} onChange={(e) => upd(r.id, "saldoDestino", e.target.value)}>
-          <option value="">—</option><option value="Administración">Administración</option><option value="Propietario">Propietario</option>
-        </select>) },
     { key: "fechaPagoCliente", header: "Fecha pago saldo", cell: (r) => dateCell(r, "fechaPagoCliente") },
     { key: "comisionPct", header: "Comisión %", num: true, cell: (r) => (
         <input className="cell num" inputMode="numeric" value={r.comisionPct ?? 30} onChange={(e) => upd(r.id, "comisionPct", e.target.value.replace(/[^\d]/g, ""))} />) },
@@ -83,7 +79,7 @@ export function ReservasTable(props) {
         r.fechaVenta, FDL.ESTADO_LABEL[FDL.estadoReserva(r)], c.nombre || "", r.inicioEstadia, r.finEstadia,
         FDL.noches(r), m ? FDL.MESES[m.getMonth()] : "", r.nombre, FDL.pax(r), r.menores, r.ciudadOrigen, r.celular, r.email || "",
         FDL.importeTotal(r), Math.round(FDL.promedioDia(r)), r.anticipo, r.pagadoDepositoA, r.fechaDeposito,
-        FDL.saldoPendiente(r), r.pagadoSaldoA, r.saldoDestino, r.fechaPagoCliente, FDL.comisionPct(r),
+        FDL.saldoPendiente(r), r.pagadoSaldoA, r.fechaPagoCliente, FDL.comisionPct(r),
         FDL.montoAdministracion(r), FDL.montoPropietario(r), "",
       ];
     });

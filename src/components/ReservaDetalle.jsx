@@ -13,7 +13,6 @@ export function ReservaDetalle({ reserva, cabanas, onClose, onPatch, onDelete })
   const saldoPend = FDL.saldoPendiente(r);
 
   const [medio, setMedio] = React.useState(r.pagadoSaldoA || "Efectivo");
-  const [destino, setDestino] = React.useState(r.saldoDestino || "Administración");
   const [fecha, setFecha] = React.useState(r.fechaPagoCliente || FDL.todayIso());
   const [pct, setPct] = React.useState(String(FDL.comisionPct(r)));
 
@@ -23,7 +22,7 @@ export function ReservaDetalle({ reserva, cabanas, onClose, onPatch, onDelete })
   const montoProp = total - montoAdmin;
 
   function saldar() {
-    onPatch(r.id, { saldoPagado: true, pagadoSaldoA: medio, saldoDestino: destino, fechaPagoCliente: fecha });
+    onPatch(r.id, { saldoPagado: true, pagadoSaldoA: medio, fechaPagoCliente: fecha });
   }
   function revertir() { onPatch(r.id, { saldoPagado: false }); }
   function guardarPct() { onPatch(r.id, { comisionPct: pctNum }); }
@@ -63,13 +62,6 @@ export function ReservaDetalle({ reserva, cabanas, onClose, onPatch, onDelete })
                 <button type="button" className={medio === "Transferencia" ? "active" : ""} onClick={() => setMedio("Transferencia")}>Transferencia</button>
               </div>
             </div>
-            <div style={{ marginBottom: 12 }}>
-              <label className="lbl">¿A dónde va el cobro?</label>
-              <div className="toggle2">
-                <button type="button" className={destino === "Administración" ? "active" : ""} onClick={() => setDestino("Administración")}>Administración</button>
-                <button type="button" className={destino === "Propietario" ? "active" : ""} onClick={() => setDestino("Propietario")}>Propietario</button>
-              </div>
-            </div>
             <div style={{ marginBottom: 14 }}>
               <label className="lbl">Fecha de cancelación del saldo</label>
               <input type="date" className="inp" value={fecha} onChange={(e) => setFecha(e.target.value)} />
@@ -80,7 +72,7 @@ export function ReservaDetalle({ reserva, cabanas, onClose, onPatch, onDelete })
           </div>
         ) : estado === "saldado" ? (
           <div className="toast-ok" style={{ marginTop: 16, alignItems: "center" }}>
-            <Icon.check size={16} /> Saldado{r.pagadoSaldoA ? " · " + r.pagadoSaldoA : ""}{r.saldoDestino ? " → " + r.saldoDestino : ""}{r.fechaPagoCliente ? " · " + FDL.fmtFecha(r.fechaPagoCliente) : ""}
+            <Icon.check size={16} /> Saldado{r.pagadoSaldoA ? " · " + r.pagadoSaldoA : ""}{r.fechaPagoCliente ? " · " + FDL.fmtFecha(r.fechaPagoCliente) : ""}
             <button className="btn-soft" style={{ marginLeft: "auto", height: 30 }} onClick={revertir}>Revertir</button>
           </div>
         ) : null}
