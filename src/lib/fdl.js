@@ -100,7 +100,49 @@ export function promedioDia(r) {
   return nn > 0 ? importeTotal(r) / nn : 0;
 }
 export function saldo(r) { return importeTotal(r) - (Number(r.anticipo) || 0); }
-export function saldoFlorDeLis(r) { return importeTotal(r) - (Number(r.comision) || 0); }
+// Saldo que todavía falta cobrar (0 si ya está saldado).
+export function saldoPendiente(r) { return r.saldoPagado ? 0 : Math.max(0, saldo(r)); }
+
+// ---------- Distribución Administración / Propietario ----------
+// La comisión de Administración es un % del total (editable, sugerido 30%);
+// el Propietario recibe el resto.
+export function comisionPct(r) {
+  const p = Number(r.comisionPct);
+  return isNaN(p) ? 30 : p;
+}
+export function montoAdministracion(r) { return Math.round(importeTotal(r) * comisionPct(r) / 100); }
+export function montoPropietario(r) { return importeTotal(r) - montoAdministracion(r); }
+// Compatibilidad: lo que le queda a Flor de Lis (administración) = su comisión.
+export function saldoFlorDeLis(r) { return montoAdministracion(r); }
+
+// ---------- Estado de la reserva ----------
+// "saldado" (todo cobrado) · "anticipo" (con seña) · "sin" (sin anticipo)
+export function estadoReserva(r) {
+  const tot = importeTotal(r);
+  const ant = Number(r.anticipo) || 0;
+  if (tot > 0 && (r.saldoPagado || ant >= tot)) return "saldado";
+  if (ant > 0) return "anticipo";
+  return "sin";
+}
+export const ESTADO_LABEL = { saldado: "Saldado", anticipo: "Con anticipo", sin: "Sin anticipo" };
+export const ESTADO_TONE  = { saldado: "ok", anticipo: "gold", sin: "danger" };
+
+// ---------- Estado de la estadía respecto de hoy ----------
+// "curso" (vigente, alguien alojado hoy) · "proxima" · "pasada"
+export function estadiaEstado(r, hoy) {
+  const h = hoy || todayIso();
+  if (!r.inicioEstadia || !r.finEstadia) return "otra";
+  if (h >= r.inicioEstadia && h < r.finEstadia) return "curso";
+  if (r.inicioEstadia > h) return "proxima";
+  return "pasada";
+}
+
+// ---------- Tipos de gasto ----------
+export const GASTO_TIPOS = ["mantenimiento", "arreglo", "limpieza", "servicios", "impuestos", "insumos", "otros"];
+export const GASTO_TIPO_LABEL = {
+  mantenimiento: "Mantenimiento", arreglo: "Arreglo", limpieza: "Limpieza",
+  servicios: "Servicios", impuestos: "Impuestos", insumos: "Insumos", otros: "Otros",
+};
 
 // ---------- Disponibilidad ----------
 // Dos reservas se solapan si comparten al menos una noche.

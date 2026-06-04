@@ -6,11 +6,13 @@ import { useAuth } from "./auth/AuthProvider";
 import { Login } from "./auth/Login";
 import { useData } from "./data/useData";
 import { BrandMark, Icon } from "./components/ui";
+import { Inicio } from "./pages/Inicio";
 import { Dashboard } from "./pages/Dashboard";
 import { ReservaForm } from "./pages/ReservaForm";
 import { Calendario } from "./pages/Calendario";
 import { ReservasTable } from "./pages/ReservasTable";
 import { Cabanas } from "./pages/Cabanas";
+import { Gastos } from "./pages/Gastos";
 import { Usuarios } from "./pages/Usuarios";
 
 function Splash({ texto }) {
@@ -42,7 +44,7 @@ function Bloqueado({ onSalir }) {
 export function App() {
   const auth = useAuth();
   const data = useData(auth);
-  const [route, setRoute] = React.useState("dashboard");
+  const [route, setRoute] = React.useState("inicio");
 
   if (!auth.ready) return <Splash />;
   if (isConfigured && !auth.session) return <Login />;
@@ -50,10 +52,12 @@ export function App() {
   if (data.loading) return <Splash texto="Cargando datos…" />;
 
   const items = [
+    { k: "inicio", t: "Inicio", ico: "home" },
     { k: "dashboard", t: "Dashboard", ico: "dashboard" },
     { k: "registrar", t: "Registrar reserva", ico: "plus" },
     { k: "calendario", t: "Calendario", ico: "calendar" },
     { k: "reservas", t: "Reservas", ico: "table" },
+    { k: "gastos", t: "Gastos", ico: "receipt" },
     { k: "cabanas", t: "Cabañas", ico: "cabin" },
   ];
   if (auth.isAdmin) items.push({ k: "usuarios", t: "Usuarios", ico: "users" });
@@ -107,11 +111,13 @@ export function App() {
             <div className="err-box"><Icon.x size={15} /> Error de conexión: {data.error}</div>
           </div>
         )}
+        {route === "inicio" && <Inicio cabanas={data.cabanas} reservas={data.reservas} onPatch={data.patchReserva} onDelete={data.deleteReserva} />}
         {route === "dashboard" && <Dashboard cabanas={data.cabanas} reservas={data.reservas} />}
         {route === "registrar" && <ReservaForm cabanas={data.cabanas} reservas={data.reservas} onSave={data.addReserva} />}
         {route === "calendario" && <Calendario cabanas={data.cabanas} reservas={data.reservas} onDelete={data.deleteReserva} />}
         {route === "reservas" && <ReservasTable cabanas={data.cabanas} reservas={data.reservas} onUpdate={data.updateReserva} onDelete={data.deleteReserva} />}
         {route === "cabanas" && <Cabanas cabanas={data.cabanas} reservas={data.reservas} onAdd={data.addCabana} onUpdate={data.updateCabana} onDelete={data.deleteCabana} />}
+        {route === "gastos" && <Gastos cabanas={data.cabanas} gastos={data.gastos} onAdd={data.addGasto} onDelete={data.deleteGasto} uploadFactura={data.uploadFactura} facturaUrl={data.facturaUrl} />}
         {route === "usuarios" && auth.isAdmin && <Usuarios />}
       </main>
     </div>

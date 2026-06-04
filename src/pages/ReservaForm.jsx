@@ -74,8 +74,9 @@ export function ReservaForm(props) {
   const empty = () => ({
     fechaVenta: FDL.todayIso(), cabanaId: "", inicioEstadia: "", finEstadia: "",
     horaInicio: "14:00", horaFin: "10:00", modoImporte: "total", importeIngresado: "",
-    nombre: "", ciudadOrigen: "", celular: "", adultos: 2, menores: 0,
-    anticipo: "", pagadoDepositoA: "", fechaDeposito: "", pagadoSaldoA: "", fechaPagoCliente: "", comision: "", notas: "",
+    nombre: "", ciudadOrigen: "", celular: "", email: "", adultos: 2, menores: 0,
+    anticipo: "", pagadoDepositoA: "", fechaDeposito: "", pagadoSaldoA: "", fechaPagoCliente: "",
+    comision: "", comisionPct: 30, notas: "",
   });
   const [f, setF] = React.useState(empty());
   const [saved, setSaved] = React.useState(false);
@@ -256,14 +257,20 @@ export function ReservaForm(props) {
                 <input className="inp has-icon" placeholder="Ej: Familia Gómez" value={f.nombre} onChange={(e) => set("nombre", e.target.value)} />
               </div>
             </Field>
+            <Field label="Ciudad de origen" help="Empezá a escribir y elegí de la lista de ciudades de Argentina." helpW={240}>
+              <CiudadInput value={f.ciudadOrigen} onChange={(v) => set("ciudadOrigen", v)} />
+            </Field>
             <div className="row-2">
-              <Field label="Ciudad de origen" help="Empezá a escribir y elegí de la lista de ciudades de Argentina." helpW={240}>
-                <CiudadInput value={f.ciudadOrigen} onChange={(v) => set("ciudadOrigen", v)} />
-              </Field>
               <Field label="Celular">
                 <div style={{ position: "relative" }}>
                   <div className="fld-icon"><Icon.phone size={15} /></div>
                   <input className="inp has-icon" placeholder="Ej: 341 555 1234" value={f.celular} onChange={(e) => set("celular", e.target.value)} />
+                </div>
+              </Field>
+              <Field label="Email">
+                <div style={{ position: "relative" }}>
+                  <div className="fld-icon"><Icon.mail size={15} /></div>
+                  <input type="email" className="inp has-icon" placeholder="Ej: persona@email.com" value={f.email} onChange={(e) => set("email", e.target.value)} />
                 </div>
               </Field>
             </div>

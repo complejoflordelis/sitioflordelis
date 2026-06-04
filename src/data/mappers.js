@@ -28,14 +28,19 @@ export function reservaFromRow(row) {
     nombre: nullToEmpty(row.nombre),
     ciudadOrigen: nullToEmpty(row.ciudad_origen),
     celular: nullToEmpty(row.celular),
+    email: nullToEmpty(row.email),
     adultos: row.adultos ?? 0,
     menores: row.menores ?? 0,
     anticipo: row.anticipo === null || row.anticipo === undefined ? "" : Number(row.anticipo),
     pagadoDepositoA: nullToEmpty(row.pagado_deposito_a),
     fechaDeposito: nullToEmpty(row.fecha_deposito),
+    anticipoDestino: nullToEmpty(row.anticipo_destino),
     pagadoSaldoA: nullToEmpty(row.pagado_saldo_a),
     fechaPagoCliente: nullToEmpty(row.fecha_pago_cliente),
+    saldoDestino: nullToEmpty(row.saldo_destino),
+    saldoPagado: !!row.saldo_pagado,
     comision: row.comision === null || row.comision === undefined ? "" : Number(row.comision),
+    comisionPct: row.comision_pct === null || row.comision_pct === undefined ? 30 : Number(row.comision_pct),
     notas: nullToEmpty(row.notas),
   };
 }
@@ -54,14 +59,43 @@ export function reservaToRow(r) {
     nombre: emptyToNull(r.nombre),
     ciudad_origen: emptyToNull(r.ciudadOrigen),
     celular: emptyToNull(r.celular),
+    email: emptyToNull(r.email),
     adultos: Number(r.adultos) || 0,
     menores: Number(r.menores) || 0,
     anticipo: numOrNull(r.anticipo),
     pagado_deposito_a: emptyToNull(r.pagadoDepositoA),
     fecha_deposito: emptyToNull(r.fechaDeposito),
+    anticipo_destino: emptyToNull(r.anticipoDestino),
     pagado_saldo_a: emptyToNull(r.pagadoSaldoA),
     fecha_pago_cliente: emptyToNull(r.fechaPagoCliente),
+    saldo_destino: emptyToNull(r.saldoDestino),
+    saldo_pagado: !!r.saldoPagado,
     comision: numOrNull(r.comision),
+    comision_pct: r.comisionPct === "" || r.comisionPct === null || r.comisionPct === undefined ? 30 : Number(r.comisionPct),
     notas: emptyToNull(r.notas),
+  };
+}
+
+// ---------- Gastos ----------
+export function gastoFromRow(row) {
+  return {
+    id: row.id,
+    fecha: nullToEmpty(row.fecha),
+    tipo: row.tipo || "otros",
+    detalle: nullToEmpty(row.detalle),
+    monto: row.monto === null || row.monto === undefined ? "" : Number(row.monto),
+    cabanaId: row.cabana_id || "",
+    facturaPath: row.factura_path || "",
+    createdAt: row.created_at,
+  };
+}
+export function gastoToRow(g) {
+  return {
+    fecha: emptyToNull(g.fecha),
+    tipo: g.tipo || "otros",
+    detalle: emptyToNull(g.detalle),
+    monto: Number(g.monto) || 0,
+    cabana_id: g.cabanaId ? g.cabanaId : null,
+    factura_path: g.facturaPath ? g.facturaPath : null,
   };
 }

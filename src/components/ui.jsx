@@ -78,6 +78,11 @@ export const Icon = {
   logout:    (p) => <Ico {...p}><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h12"/></Ico>,
   shield:    (p) => <Ico {...p}><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></Ico>,
   info:      (p) => <Ico {...p}><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></Ico>,
+  home:      (p) => <Ico {...p}><path d="M3 11l9-7 9 7M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9M9 20v-6h6v6"/></Ico>,
+  receipt:   (p) => <Ico {...p}><path d="M6 2h12v20l-2.5-1.6L13 22l-2.5-1.6L8 22l-2-1.6V2z"/><path d="M9 7h6M9 11h6M9 15h4"/></Ico>,
+  camera:    (p) => <Ico {...p}><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.2"/></Ico>,
+  wallet:    (p) => <Ico {...p}><path d="M3 7a2 2 0 0 1 2-2h11v4M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6"/><circle cx="17" cy="13" r="1.2"/></Ico>,
+  mail:      (p) => <Ico {...p}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 7l8 6 8-6"/></Ico>,
 };
 
 // ---------- Tooltip de ayuda (hover) ----------

@@ -4,7 +4,7 @@
 import React from "react";
 import * as FDL from "../lib/fdl";
 import { supabase, isConfigured } from "../lib/supabaseClient";
-import { cabanaFromRow, cabanaToRow, reservaFromRow, reservaToRow } from "./mappers";
+import { cabanaFromRow, cabanaToRow, reservaFromRow, reservaToRow, gastoFromRow, gastoToRow } from "./mappers";
 
 const LS_KEY = "florDeLis.v2";
 
@@ -15,10 +15,11 @@ function loadLocal() {
       const data = JSON.parse(raw);
       if (!data.cabanas) data.cabanas = FDL.DEFAULT_CABANAS.slice();
       if (!data.reservas) data.reservas = [];
+      if (!data.gastos) data.gastos = [];
       return data;
     }
   } catch (e) { /* ignore */ }
-  return { cabanas: FDL.DEFAULT_CABANAS.slice(), reservas: FDL.seedReservas() };
+  return { cabanas: FDL.DEFAULT_CABANAS.slice(), reservas: FDL.seedReservas(), gastos: [] };
 }
 function saveLocal(state) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
@@ -27,6 +28,7 @@ function saveLocal(state) {
 export function useData(auth) {
   const [cabanas, setCabanas] = React.useState([]);
   const [reservas, setReservas] = React.useState([]);
+  const [gastos, setGastos] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
 
@@ -41,7 +43,7 @@ export function useData(auth) {
       if (!isConfigured) {
         const s = loadLocal();
         if (!alive) return;
-        setCabanas(s.cabanas); setReservas(s.reservas); setLoading(false);
+        setCabanas(s.cabanas); setReservas(s.reservas); setGastos(s.gastos || []); setLoading(false);
         return;
       }
       if (!userId) { setLoading(true); return; } // esperar al login
@@ -58,9 +60,12 @@ export function useData(auth) {
         }
         const { data: resRows, error: e3 } = await supabase.from("reservas").select("*").order("inicio_estadia", { ascending: true });
         if (e3) throw e3;
+        const { data: gasRows, error: e4 } = await supabase.from("gastos").select("*").order("fecha", { ascending: false });
+        if (e4) throw e4;
         if (!alive) return;
         setCabanas((cabRows || []).map(cabanaFromRow));
         setReservas((resRows || []).map(reservaFromRow));
+        setGastos((gasRows || []).map(gastoFromRow));
         setLoading(false);
       } catch (err) {
         if (!alive) return;
@@ -74,8 +79,8 @@ export function useData(auth) {
 
   // Persistencia en modo local (cada cambio)
   React.useEffect(() => {
-    if (!isConfigured && !loading) saveLocal({ cabanas, reservas });
-  }, [cabanas, reservas, loading]);
+    if (!isConfigured && !loading) saveLocal({ cabanas, reservas, gastos });
+  }, [cabanas, reservas, gastos, loading]);
 
   // ---------- Reservas ----------
   async function addReserva(r) {
@@ -100,6 +105,22 @@ export function useData(auth) {
     if (isConfigured && updated) {
       const patch = reservaToRow(updated);
       const { error: e } = await supabase.from("reservas").update(patch).eq("id", id);
+      if (e) setError(e.message);
+    }
+  }
+
+  // Actualiza varios campos de una reserva de una sola vez (ej: saldar saldo).
+  async function patchReserva(id, patch) {
+    let updated = null;
+    setReservas((prev) => prev.map((r) => {
+      if (r.id !== id) return r;
+      const n = Object.assign({}, r, patch);
+      n.importeTotal = FDL.importeTotal(n);
+      updated = n; return n;
+    }));
+    if (isConfigured && updated) {
+      const row = reservaToRow(updated);
+      const { error: e } = await supabase.from("reservas").update(row).eq("id", id);
       if (e) setError(e.message);
     }
   }
@@ -146,6 +167,47 @@ export function useData(auth) {
     }
   }
 
+  // ---------- Gastos ----------
+  async function addGasto(g) {
+    const localId = g.id || ("g" + Date.now().toString(36) + Math.floor(Math.random() * 1000).toString(36));
+    const withId = { ...g, id: localId };
+    setGastos((prev) => [withId, ...prev]);
+    if (isConfigured) {
+      const { data, error: e } = await supabase.from("gastos").insert(gastoToRow(g)).select("*").single();
+      if (e) { setError(e.message); return; }
+      const mapped = gastoFromRow(data);
+      setGastos((prev) => prev.map((x) => (x.id === localId ? mapped : x)));
+    }
+  }
+
+  async function deleteGasto(id) {
+    const g = gastos.find((x) => x.id === id);
+    setGastos((prev) => prev.filter((x) => x.id !== id));
+    if (isConfigured) {
+      if (g && g.facturaPath) { try { await supabase.storage.from("facturas").remove([g.facturaPath]); } catch (e) { /* ignore */ } }
+      const { error: e } = await supabase.from("gastos").delete().eq("id", id);
+      if (e) setError(e.message);
+    }
+  }
+
+  // Sube la foto de una factura al bucket privado y devuelve su ruta.
+  async function uploadFactura(file) {
+    if (!isConfigured || !file) return "";
+    const ext = (file.name && file.name.indexOf(".") !== -1 ? file.name.split(".").pop() : "jpg").toLowerCase();
+    const path = (userId || "anon") + "/" + Date.now().toString(36) + Math.floor(Math.random() * 1000).toString(36) + "." + ext;
+    const { error: e } = await supabase.storage.from("facturas").upload(path, file, { upsert: false, contentType: file.type || undefined });
+    if (e) { setError(e.message); return ""; }
+    return path;
+  }
+
+  // URL temporal (firmada) para visualizar una factura guardada.
+  async function facturaUrl(path) {
+    if (!isConfigured || !path) return "";
+    const { data, error: e } = await supabase.storage.from("facturas").createSignedUrl(path, 3600);
+    if (e) return "";
+    return data.signedUrl;
+  }
+
   // ---------- Demo (solo modo local) ----------
   function resetDemo() {
     if (isConfigured) return;
@@ -155,9 +217,10 @@ export function useData(auth) {
   }
 
   return {
-    cabanas, reservas, loading, error,
-    addReserva, updateReserva, deleteReserva,
+    cabanas, reservas, gastos, loading, error,
+    addReserva, updateReserva, patchReserva, deleteReserva,
     addCabana, updateCabana, deleteCabana,
+    addGasto, deleteGasto, uploadFactura, facturaUrl,
     resetDemo,
   };
 }
