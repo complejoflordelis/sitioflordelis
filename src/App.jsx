@@ -41,7 +41,7 @@ function Bloqueado({ onSalir }) {
 
 export function App() {
   const auth = useAuth();
-  const data = useData();
+  const data = useData(auth);
   const [route, setRoute] = React.useState("dashboard");
 
   if (!auth.ready) return <Splash />;

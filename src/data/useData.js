@@ -24,11 +24,15 @@ function saveLocal(state) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
 }
 
-export function useData() {
+export function useData(auth) {
   const [cabanas, setCabanas] = React.useState([]);
   const [reservas, setReservas] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+
+  // En modo nube necesitamos la sesión antes de consultar: si no, la RLS
+  // rechaza todo (y al estar la tabla "vacía" intentaría sembrar sin permiso).
+  const userId = auth && auth.session && auth.session.user ? auth.session.user.id : null;
 
   // ---------- Carga inicial ----------
   React.useEffect(() => {
@@ -40,6 +44,8 @@ export function useData() {
         setCabanas(s.cabanas); setReservas(s.reservas); setLoading(false);
         return;
       }
+      if (!userId) { setLoading(true); return; } // esperar al login
+      setLoading(true);
       try {
         let { data: cabRows, error: e1 } = await supabase.from("cabanas").select("*").order("orden", { ascending: true });
         if (e1) throw e1;
@@ -64,7 +70,7 @@ export function useData() {
     }
     init();
     return () => { alive = false; };
-  }, []);
+  }, [userId]);
 
   // Persistencia en modo local (cada cambio)
   React.useEffect(() => {
