@@ -52,7 +52,9 @@ export function App() {
   if (isConfigured && auth.session && !auth.isActive) return <Bloqueado onSalir={auth.signOut} />;
   if (data.loading) return <Splash texto="Cargando datos…" />;
 
-  const items = [
+  // El operador solo accede a estas secciones; el admin ve todo.
+  const OPERADOR_ROUTES = ["inicio", "registrar", "calendario"];
+  const allItems = [
     { k: "inicio", t: "Inicio", ico: "home" },
     { k: "dashboard", t: "Dashboard", ico: "dashboard" },
     { k: "registrar", t: "Registrar reserva", ico: "plus" },
@@ -61,8 +63,11 @@ export function App() {
     { k: "gastos", t: "Gastos", ico: "receipt" },
     { k: "rendicion", t: "Rendición", ico: "wallet" },
     { k: "cabanas", t: "Cabañas", ico: "cabin" },
+    { k: "usuarios", t: "Usuarios", ico: "users" },
   ];
-  if (auth.isAdmin) items.push({ k: "usuarios", t: "Usuarios", ico: "users" });
+  const items = auth.isAdmin ? allItems : allItems.filter((it) => OPERADOR_ROUTES.includes(it.k));
+  // Si el operador quedó en una ruta que no le corresponde, lo mandamos a Inicio.
+  const vista = auth.isAdmin || OPERADOR_ROUTES.includes(route) ? route : "inicio";
 
   const pendientes = data.reservas.filter((r) => FDL.saldo(r) > 0).length;
 
@@ -73,7 +78,7 @@ export function App() {
         <nav className="side-nav">
           {items.map((it) => {
             const I = Icon[it.ico];
-            const active = route === it.k;
+            const active = vista === it.k;
             return (
               <button key={it.k} className={"nav-item" + (active ? " active" : "")} onClick={() => setRoute(it.k)}>
                 <I size={19} /> <span>{it.t}</span>
@@ -113,15 +118,15 @@ export function App() {
             <div className="err-box"><Icon.x size={15} /> Error de conexión: {data.error}</div>
           </div>
         )}
-        {route === "inicio" && <Inicio cabanas={data.cabanas} reservas={data.reservas} onPatch={data.patchReserva} onDelete={data.deleteReserva} />}
-        {route === "dashboard" && <Dashboard cabanas={data.cabanas} reservas={data.reservas} />}
-        {route === "registrar" && <ReservaForm cabanas={data.cabanas} reservas={data.reservas} onSave={data.addReserva} />}
-        {route === "calendario" && <Calendario cabanas={data.cabanas} reservas={data.reservas} onDelete={data.deleteReserva} />}
-        {route === "reservas" && <ReservasTable cabanas={data.cabanas} reservas={data.reservas} onUpdate={data.updateReserva} onDelete={data.deleteReserva} />}
-        {route === "cabanas" && <Cabanas cabanas={data.cabanas} reservas={data.reservas} onAdd={data.addCabana} onUpdate={data.updateCabana} onDelete={data.deleteCabana} />}
-        {route === "gastos" && <Gastos cabanas={data.cabanas} gastos={data.gastos} onAdd={data.addGasto} onDelete={data.deleteGasto} uploadFactura={data.uploadFactura} facturaUrl={data.facturaUrl} />}
-        {route === "rendicion" && <Rendicion reservas={data.reservas} cabanas={data.cabanas} onRendir={data.rendirAdministracion} />}
-        {route === "usuarios" && auth.isAdmin && <Usuarios />}
+        {vista === "inicio" && <Inicio cabanas={data.cabanas} reservas={data.reservas} onPatch={data.patchReserva} onDelete={data.deleteReserva} />}
+        {vista === "registrar" && <ReservaForm cabanas={data.cabanas} reservas={data.reservas} onSave={data.addReserva} />}
+        {vista === "calendario" && <Calendario cabanas={data.cabanas} reservas={data.reservas} onDelete={data.deleteReserva} />}
+        {vista === "dashboard" && auth.isAdmin && <Dashboard cabanas={data.cabanas} reservas={data.reservas} />}
+        {vista === "reservas" && auth.isAdmin && <ReservasTable cabanas={data.cabanas} reservas={data.reservas} onUpdate={data.updateReserva} onDelete={data.deleteReserva} />}
+        {vista === "cabanas" && auth.isAdmin && <Cabanas cabanas={data.cabanas} reservas={data.reservas} onAdd={data.addCabana} onUpdate={data.updateCabana} onDelete={data.deleteCabana} />}
+        {vista === "gastos" && auth.isAdmin && <Gastos cabanas={data.cabanas} gastos={data.gastos} onAdd={data.addGasto} onDelete={data.deleteGasto} uploadFactura={data.uploadFactura} facturaUrl={data.facturaUrl} />}
+        {vista === "rendicion" && auth.isAdmin && <Rendicion reservas={data.reservas} cabanas={data.cabanas} onRendir={data.rendirAdministracion} />}
+        {vista === "usuarios" && auth.isAdmin && <Usuarios />}
       </main>
     </div>
   );
