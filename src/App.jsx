@@ -84,12 +84,9 @@ export function App() {
           {pendientes > 0 && <div className="side-pend"><Icon.clock size={14} /> {pendientes} con saldo pendiente</div>}
 
           {auth.isLocal ? (
-            <>
-              <div className="side-pend" style={{ background: "oklch(0.95 0.04 250)", borderColor: "oklch(0.85 0.06 250)", color: "oklch(0.4 0.1 255)" }}>
-                <Icon.info size={14} /> Modo local (sin nube)
-              </div>
-              <button className="reset-btn" onClick={data.resetDemo} title="Restaurar datos de ejemplo">Restaurar demo</button>
-            </>
+            <div className="side-pend" style={{ background: "oklch(0.95 0.04 250)", borderColor: "oklch(0.85 0.06 250)", color: "oklch(0.4 0.1 255)" }}>
+              <Icon.info size={14} /> Modo local (sin nube)
+            </div>
           ) : (
             <div className="user-foot">
               <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "var(--ink-soft)", fontWeight: 600, marginBottom: 8, minWidth: 0 }}>
