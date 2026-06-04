@@ -93,10 +93,24 @@ export function ReservaForm(props) {
 
   const puedeGuardar = cabana && rangoOk && !choca && f.nombre.trim() && f.importeIngresado && !excede;
 
+  const anticipoSugerido = totalCalc > 0 ? Math.round(totalCalc / 2) : 0;
+  const saldoCalc = Math.max(0, totalCalc - (Number(f.anticipo) || 0));
+
+  // Sugerencia automática del anticipo (50% del total) hasta que se edite a mano.
+  const anticipoTouched = React.useRef(false);
+  React.useEffect(() => {
+    if (!anticipoTouched.current) {
+      set("anticipo", totalCalc > 0 ? String(Math.round(totalCalc / 2)) : "");
+    }
+  }, [totalCalc]);
+
+  function limpiar() { anticipoTouched.current = false; setF(empty()); }
+
   function guardar() {
     if (!puedeGuardar) return;
     const r = Object.assign({}, f, { id: FDL.uid(), importeTotal: totalCalc });
     props.onSave(r);
+    anticipoTouched.current = false;
     setF(empty());
     setSaved(true);
     setTimeout(() => setSaved(false), 3500);
@@ -195,6 +209,43 @@ export function ReservaForm(props) {
               <div><span>Total estadía</span><b>{rangoOk && f.importeIngresado ? FDL.fmtMoney(totalCalc) : "—"}</b></div>
               <div><span>Promedio x día</span><b>{nn && f.importeIngresado ? FDL.fmtMoney(prom) : "—"}</b></div>
             </div>
+
+            <div style={{ marginTop: 18 }}>
+              <label className="lbl">
+                Anticipo / Seña
+                <Help width={230}>Se sugiere el 50% del total automáticamente, pero podés escribir otro monto.</Help>
+              </label>
+              <div style={{ position: "relative" }}>
+                <div className="fld-icon" style={{ fontWeight: 700, color: "var(--ink-soft)" }}>$</div>
+                <input className="inp has-icon" inputMode="numeric" placeholder="0"
+                  value={f.anticipo}
+                  onChange={(e) => { anticipoTouched.current = true; set("anticipo", e.target.value.replace(/[^\d]/g, "")); }} />
+              </div>
+              {totalCalc > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 12.5, color: "var(--ink-faint)", fontWeight: 600 }}>
+                  <span>Sugerido 50%: <b style={{ color: "var(--ink-soft)" }}>{FDL.fmtMoney(anticipoSugerido)}</b></span>
+                  <span>Saldo restante: <b style={{ color: "var(--ink-soft)" }}>{FDL.fmtMoney(saldoCalc)}</b></span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-title"><Icon.money size={18} /> Pago del anticipo</div>
+            <div className="row-2">
+              <Field label="Fecha de pago del anticipo" tight help="¿Cuándo se cobró la seña? (opcional)">
+                <div style={{ position: "relative" }}>
+                  <div className="fld-icon"><Icon.calendar size={16} /></div>
+                  <input type="date" className="inp has-icon" value={f.fechaDeposito} onChange={(e) => set("fechaDeposito", e.target.value)} />
+                </div>
+              </Field>
+              <Field label="Medio de pago" tight>
+                <div className="toggle2">
+                  <button type="button" className={f.pagadoDepositoA === "Efectivo" ? "active" : ""} onClick={() => set("pagadoDepositoA", f.pagadoDepositoA === "Efectivo" ? "" : "Efectivo")}>Efectivo</button>
+                  <button type="button" className={f.pagadoDepositoA === "Transferencia" ? "active" : ""} onClick={() => set("pagadoDepositoA", f.pagadoDepositoA === "Transferencia" ? "" : "Transferencia")}>Transferencia</button>
+                </div>
+              </Field>
+            </div>
           </div>
 
           <div className="card">
@@ -235,7 +286,7 @@ export function ReservaForm(props) {
       </div>
 
       <div className="form-actions">
-        <button type="button" className="btn-ghost" onClick={() => setF(empty())}>Limpiar</button>
+        <button type="button" className="btn-ghost" onClick={limpiar}>Limpiar</button>
         <button type="button" className="btn-primary" disabled={!puedeGuardar} onClick={guardar}>
           <Icon.check size={18} /> Guardar reserva
         </button>
