@@ -127,6 +127,22 @@ export function useData(auth) {
     }
   }
 
+  // Rinde la comisión de Administración pendiente: estampa la fecha de rendición
+  // en todas las reservas con comisión > 0 y sin rendir.
+  async function rendirAdministracion(fecha) {
+    const f = fecha || FDL.todayIso();
+    const pendientes = reservas.filter((r) => !r.fechaRendicion && FDL.montoAdministracion(r) > 0);
+    const ids = pendientes.map((r) => r.id);
+    if (ids.length === 0) return { count: 0, total: 0 };
+    const total = pendientes.reduce((a, r) => a + FDL.montoAdministracion(r), 0);
+    setReservas((prev) => prev.map((r) => (ids.indexOf(r.id) !== -1 ? Object.assign({}, r, { fechaRendicion: f }) : r)));
+    if (isConfigured) {
+      const { error: e } = await supabase.from("reservas").update({ fecha_rendicion: f }).in("id", ids);
+      if (e) setError(e.message);
+    }
+    return { count: ids.length, total };
+  }
+
   // ---------- Cabañas ----------
   async function addCabana(c) {
     const orden = cabanas.length;
@@ -206,7 +222,7 @@ export function useData(auth) {
 
   return {
     cabanas, reservas, gastos, loading, error,
-    addReserva, updateReserva, patchReserva, deleteReserva,
+    addReserva, updateReserva, patchReserva, deleteReserva, rendirAdministracion,
     addCabana, updateCabana, deleteCabana,
     addGasto, deleteGasto, uploadFactura, facturaUrl,
     resetDemo,

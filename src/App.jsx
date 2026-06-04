@@ -13,6 +13,7 @@ import { Calendario } from "./pages/Calendario";
 import { ReservasTable } from "./pages/ReservasTable";
 import { Cabanas } from "./pages/Cabanas";
 import { Gastos } from "./pages/Gastos";
+import { Rendicion } from "./pages/Rendicion";
 import { Usuarios } from "./pages/Usuarios";
 
 function Splash({ texto }) {
@@ -58,6 +59,7 @@ export function App() {
     { k: "calendario", t: "Calendario", ico: "calendar" },
     { k: "reservas", t: "Reservas", ico: "table" },
     { k: "gastos", t: "Gastos", ico: "receipt" },
+    { k: "rendicion", t: "Rendición", ico: "wallet" },
     { k: "cabanas", t: "Cabañas", ico: "cabin" },
   ];
   if (auth.isAdmin) items.push({ k: "usuarios", t: "Usuarios", ico: "users" });
@@ -118,6 +120,7 @@ export function App() {
         {route === "reservas" && <ReservasTable cabanas={data.cabanas} reservas={data.reservas} onUpdate={data.updateReserva} onDelete={data.deleteReserva} />}
         {route === "cabanas" && <Cabanas cabanas={data.cabanas} reservas={data.reservas} onAdd={data.addCabana} onUpdate={data.updateCabana} onDelete={data.deleteCabana} />}
         {route === "gastos" && <Gastos cabanas={data.cabanas} gastos={data.gastos} onAdd={data.addGasto} onDelete={data.deleteGasto} uploadFactura={data.uploadFactura} facturaUrl={data.facturaUrl} />}
+        {route === "rendicion" && <Rendicion reservas={data.reservas} cabanas={data.cabanas} onRendir={data.rendirAdministracion} />}
         {route === "usuarios" && auth.isAdmin && <Usuarios />}
       </main>
     </div>

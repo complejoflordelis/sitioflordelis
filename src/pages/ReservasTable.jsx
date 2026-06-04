@@ -49,7 +49,9 @@ export function ReservasTable(props) {
     { key: "fechaPagoCliente", header: "Fecha pago saldo", cell: (r) => dateCell(r, "fechaPagoCliente") },
     { key: "comisionPct", header: "Comisión %", num: true, cell: (r) => (
         <input className="cell num" inputMode="numeric" value={r.comisionPct ?? 30} onChange={(e) => upd(r.id, "comisionPct", e.target.value.replace(/[^\d]/g, ""))} />) },
-    { key: "administracion", header: "Administración", calc: true, num: true, strong: true, cell: (r) => FDL.fmtMoney(FDL.montoAdministracion(r)), foot: (t) => FDL.fmtMoney(t.admin) },
+    { key: "administracion", header: "Comisión a rendir", calc: true, num: true, strong: true,
+      cell: (r) => <span title={r.fechaRendicion ? "Rendido el " + FDL.fmtFecha(r.fechaRendicion) + " (comisión " + FDL.fmtMoney(FDL.montoAdministracion(r)) + ")" : "Comisión " + FDL.comisionPct(r) + "%"}>{FDL.fmtMoney(FDL.adminPendiente(r))}</span>,
+      foot: (t) => FDL.fmtMoney(t.admin) },
     { key: "propietario", header: "Propietario", calc: true, num: true, strong: true, cell: (r) => FDL.fmtMoney(FDL.montoPropietario(r)), foot: (t) => FDL.fmtMoney(t.prop) },
   ];
 
@@ -65,7 +67,7 @@ export function ReservasTable(props) {
 
   const tot = filtered.reduce((a, r) => {
     a.total += FDL.importeTotal(r); a.anticipo += Number(r.anticipo) || 0;
-    a.saldo += FDL.saldoPendiente(r); a.admin += FDL.montoAdministracion(r); a.prop += FDL.montoPropietario(r);
+    a.saldo += FDL.saldoPendiente(r); a.admin += FDL.adminPendiente(r); a.prop += FDL.montoPropietario(r);
     a.pax += FDL.pax(r); a.noches += FDL.noches(r);
     return a;
   }, { total: 0, anticipo: 0, saldo: 0, admin: 0, prop: 0, pax: 0, noches: 0 });
@@ -80,7 +82,7 @@ export function ReservasTable(props) {
         FDL.noches(r), m ? FDL.MESES[m.getMonth()] : "", r.nombre, FDL.pax(r), r.menores, r.ciudadOrigen, r.celular, r.email || "",
         FDL.importeTotal(r), Math.round(FDL.promedioDia(r)), r.anticipo, r.pagadoDepositoA, r.fechaDeposito,
         FDL.saldoPendiente(r), r.pagadoSaldoA, r.fechaPagoCliente, FDL.comisionPct(r),
-        FDL.montoAdministracion(r), FDL.montoPropietario(r), "",
+        FDL.adminPendiente(r), FDL.montoPropietario(r), "",
       ];
     });
     const csv = [heads].concat(rows).map((row) => row.map((x) => '"' + String(x == null ? "" : x).replace(/"/g, '""') + '"').join(",")).join("\n");

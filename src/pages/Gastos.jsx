@@ -96,8 +96,24 @@ export function Gastos({ cabanas, gastos, onAdd, onDelete, uploadFactura, factur
             </div>
             <div style={{ marginBottom: 16 }}>
               <label className="lbl">Foto de la factura {!isConfigured && <span style={{ color: "var(--ink-faint)", fontWeight: 500 }}>(disponible en modo nube)</span>}</label>
-              <input ref={fileRef} type="file" accept="image/*,application/pdf" className="inp" style={{ height: "auto", padding: 9 }}
+              <input ref={fileRef} id="factura-file" type="file" accept="image/*,application/pdf" style={{ display: "none" }}
                 disabled={!isConfigured} onChange={(e) => setFile(e.target.files && e.target.files[0])} />
+              <label htmlFor="factura-file" style={{
+                display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 11,
+                border: "1.5px dashed " + (file ? "var(--brand-300)" : "var(--line-strong)"),
+                background: file ? "var(--brand-50)" : "var(--surface-2)",
+                cursor: isConfigured ? "pointer" : "not-allowed", opacity: isConfigured ? 1 : 0.55,
+                color: file ? "var(--brand-700)" : "var(--ink-soft)", fontWeight: 600, fontSize: 13.5, transition: "all .14s",
+              }}>
+                {file ? <Icon.check size={18} /> : <Icon.camera size={18} />}
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+                  {file ? file.name : "Elegir foto o PDF…"}
+                </span>
+                {file
+                  ? <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFile(null); if (fileRef.current) fileRef.current.value = ""; }}
+                      style={{ color: "var(--ink-faint)", display: "inline-flex" }} title="Quitar"><Icon.x size={16} /></span>
+                  : <span className="btn-soft" style={{ height: 28, padding: "0 12px", pointerEvents: "none" }}>Examinar</span>}
+              </label>
             </div>
             <button className="btn-primary" type="submit" disabled={busy || !form.monto} style={{ width: "100%", justifyContent: "center" }}>
               {busy ? "Guardando…" : <><Icon.check size={18} /> Guardar gasto</>}

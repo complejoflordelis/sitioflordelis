@@ -112,6 +112,8 @@ export function comisionPct(r) {
 }
 export function montoAdministracion(r) { return Math.round(importeTotal(r) * comisionPct(r) / 100); }
 export function montoPropietario(r) { return importeTotal(r) - montoAdministracion(r); }
+// Comisión de Administración todavía pendiente de rendir (0 si ya se rindió).
+export function adminPendiente(r) { return r.fechaRendicion ? 0 : montoAdministracion(r); }
 // Compatibilidad: lo que le queda a Flor de Lis (administración) = su comisión.
 export function saldoFlorDeLis(r) { return montoAdministracion(r); }
 
