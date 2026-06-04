@@ -90,7 +90,7 @@ create trigger on_auth_user_created
 
 -- ---------- updated_at automático en reservas ----------
 create or replace function public.touch_updated_at()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin new.updated_at = now(); return new; end;
 $$;
 drop trigger if exists reservas_touch on public.reservas;
@@ -122,3 +122,12 @@ create policy cabanas_all on public.cabanas for all to authenticated
 drop policy if exists reservas_all on public.reservas;
 create policy reservas_all on public.reservas for all to authenticated
   using (public.is_active(auth.uid())) with check (public.is_active(auth.uid()));
+
+-- ============================================================
+-- Endurecimiento: las funciones de trigger no se exponen por la API REST,
+-- y los helpers de RLS no son llamables por el rol anónimo.
+-- ============================================================
+revoke execute on function public.handle_new_user() from anon, authenticated;
+revoke execute on function public.touch_updated_at() from anon, authenticated;
+revoke execute on function public.is_admin(uuid) from anon;
+revoke execute on function public.is_active(uuid) from anon;
