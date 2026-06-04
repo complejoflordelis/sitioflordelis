@@ -81,6 +81,7 @@ export function App() {
         <button className="hamb" onClick={() => setMenuOpen(true)} aria-label="Abrir menú"><Icon.menu size={22} /></button>
         <span className="topbar-title">{tituloActual}</span>
         <button className="hamb" onClick={() => ir("registrar")} aria-label="Registrar reserva" style={{ marginLeft: "auto" }}><Icon.plus size={22} /></button>
+        {!auth.isLocal && <button className="hamb" onClick={auth.signOut} aria-label="Cerrar sesión"><Icon.logout size={20} /></button>}
       </header>
       <div className="scrim" onClick={() => setMenuOpen(false)} />
 
@@ -133,7 +134,7 @@ export function App() {
           </div>
         )}
         {vista === "inicio" && <Inicio cabanas={data.cabanas} reservas={data.reservas} onPatch={data.patchReserva} onDelete={data.deleteReserva} />}
-        {vista === "registrar" && <ReservaForm cabanas={data.cabanas} reservas={data.reservas} onSave={data.addReserva} />}
+        {vista === "registrar" && <ReservaForm cabanas={data.cabanas} reservas={data.reservas} onSave={(r) => data.addReserva({ ...r, creadoPor: (auth.profile && (auth.profile.nombre || auth.profile.email)) || "" })} />}
         {vista === "calendario" && <Calendario cabanas={data.cabanas} reservas={data.reservas} onDelete={data.deleteReserva} />}
         {vista === "dashboard" && auth.isAdmin && <Dashboard cabanas={data.cabanas} reservas={data.reservas} />}
         {vista === "reservas" && auth.isAdmin && <ReservasTable cabanas={data.cabanas} reservas={data.reservas} onUpdate={data.updateReserva} onDelete={data.deleteReserva} />}

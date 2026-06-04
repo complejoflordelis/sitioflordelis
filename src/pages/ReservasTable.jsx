@@ -18,7 +18,8 @@ export function ReservasTable(props) {
 
   // Modelo único de columnas: header, celda y total se mantienen alineados.
   const columns = [
-    { key: "fechaVenta", header: "Fecha venta", sortable: true, cell: (r) => dateCell(r, "fechaVenta"), foot: () => "Totales (" + filtered.length + ")" },
+    { key: "numero", header: "N°", sortable: true, calc: true, num: true, cell: (r) => (r.numero != null ? "N°" + r.numero : "—"), foot: () => "Totales (" + filtered.length + ")" },
+    { key: "fechaVenta", header: "Fecha venta", sortable: true, cell: (r) => dateCell(r, "fechaVenta") },
     { key: "estado", header: "Estado", calc: true, cell: (r) => { const es = FDL.estadoReserva(r); return <Badge tone={FDL.ESTADO_TONE[es]}>{FDL.ESTADO_LABEL[es]}</Badge>; } },
     { key: "cabanaId", header: "Cabaña", sortable: true, tdClass: "cell-cab", cell: (r) => {
         const c = cabanas.find((x) => x.id === r.cabanaId) || {}; const col = FDL.CABANA_COLORS[c.color] || {};
@@ -34,6 +35,7 @@ export function ReservasTable(props) {
     { key: "ciudadOrigen", header: "Zona origen", sortable: true, cell: (r) => textCell(r, "ciudadOrigen", "", true) },
     { key: "celular", header: "Celular", cell: (r) => textCell(r, "celular") },
     { key: "email", header: "Email", cell: (r) => textCell(r, "email", "—", true) },
+    { key: "creadoPor", header: "Cargada por", cell: (r) => <span style={{ color: "var(--ink-soft)", fontSize: 12.5, padding: "0 6px", whiteSpace: "nowrap" }}>{r.creadoPor || "—"}</span> },
     { key: "importe", header: "Importe total", num: true, cell: (r) => (
         <div className="money-cell">
           <input className="cell num" inputMode="numeric" value={r.importeIngresado} onChange={(e) => upd(r.id, "importeIngresado", e.target.value.replace(/[^\d]/g, ""))} />
@@ -78,8 +80,8 @@ export function ReservasTable(props) {
       const c = cabanas.find((x) => x.id === r.cabanaId) || {};
       const m = FDL.parseIso(r.inicioEstadia);
       return [
-        r.fechaVenta, FDL.ESTADO_LABEL[FDL.estadoReserva(r)], c.nombre || "", r.inicioEstadia, r.finEstadia,
-        FDL.noches(r), m ? FDL.MESES[m.getMonth()] : "", r.nombre, FDL.pax(r), r.menores, r.ciudadOrigen, r.celular, r.email || "",
+        r.numero != null ? r.numero : "", r.fechaVenta, FDL.ESTADO_LABEL[FDL.estadoReserva(r)], c.nombre || "", r.inicioEstadia, r.finEstadia,
+        FDL.noches(r), m ? FDL.MESES[m.getMonth()] : "", r.nombre, FDL.pax(r), r.menores, r.ciudadOrigen, r.celular, r.email || "", r.creadoPor || "",
         FDL.importeTotal(r), Math.round(FDL.promedioDia(r)), r.anticipo, r.pagadoDepositoA, r.fechaDeposito,
         FDL.saldoPendiente(r), r.pagadoSaldoA, r.fechaPagoCliente, FDL.comisionPct(r),
         FDL.adminPendiente(r), FDL.montoPropietario(r), "",

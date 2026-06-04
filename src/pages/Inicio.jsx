@@ -28,7 +28,9 @@ function ReservaCard({ r, cabanas, hoy, onOpen }) {
         <CabanaTag cabana={cab} size={12} />
         <Badge tone={FDL.ESTADO_TONE[estado]}>{FDL.ESTADO_LABEL[estado]}</Badge>
       </div>
-      <div style={{ fontWeight: 700, fontSize: 16, color: "var(--ink)", lineHeight: 1.2 }}>{r.nombre || "—"}</div>
+      <div style={{ fontWeight: 700, fontSize: 16, color: "var(--ink)", lineHeight: 1.2 }}>
+        {r.numero != null && <span style={{ color: "var(--ink-faint)", fontWeight: 800 }}>N°{r.numero} · </span>}{r.nombre || "—"}
+      </div>
       <div style={{ display: "flex", alignItems: "center", gap: 7, color: "var(--ink-soft)", fontSize: 13, fontWeight: 600 }}>
         <Icon.calendar size={14} /> {FDL.fmtFechaCorta(r.inicioEstadia)} → {FDL.fmtFechaCorta(r.finEstadia)} · {FDL.noches(r)}n
       </div>

@@ -16,6 +16,8 @@ export function cabanaToRow(c) {
 export function reservaFromRow(row) {
   return {
     id: row.id,
+    numero: row.numero === null || row.numero === undefined ? null : Number(row.numero),
+    creadoPor: nullToEmpty(row.creado_por),
     fechaVenta: nullToEmpty(row.fecha_venta),
     cabanaId: row.cabana_id,
     inicioEstadia: nullToEmpty(row.inicio_estadia),
@@ -48,6 +50,7 @@ export function reservaFromRow(row) {
 export function reservaToRow(r) {
   return {
     id: r.id,
+    creado_por: emptyToNull(r.creadoPor),
     fecha_venta: emptyToNull(r.fechaVenta),
     cabana_id: r.cabanaId,
     inicio_estadia: emptyToNull(r.inicioEstadia),

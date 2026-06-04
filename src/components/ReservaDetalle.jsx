@@ -31,7 +31,10 @@ export function ReservaDetalle({ reserva, cabanas, onClose, onPatch, onDelete })
     <div className="modal-bg" onClick={onClose}>
       <div className="modal" style={{ width: 470, maxHeight: "92vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
-          <CabanaTag cabana={cab} />
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            {r.numero != null && <span className="card-tag">Reserva N° {r.numero}</span>}
+            <CabanaTag cabana={cab} />
+          </div>
           <button className="icon-btn" onClick={onClose}><Icon.x size={18} /></button>
         </div>
         <h3 className="modal-title" style={{ marginBottom: 8 }}>{r.nombre || "—"}</h3>
@@ -47,6 +50,7 @@ export function ReservaDetalle({ reserva, cabanas, onClose, onPatch, onDelete })
           <div><span><Icon.pin size={15} /> Origen</span><b>{r.ciudadOrigen || "—"}</b></div>
           <div><span><Icon.phone size={15} /> Celular</span><b>{r.celular || "—"}</b></div>
           <div><span><Icon.mail size={15} /> Email</span><b>{r.email || "—"}</b></div>
+          {r.creadoPor && <div><span><Icon.user size={15} /> Cargada por</span><b>{r.creadoPor}</b></div>}
           <div><span><Icon.money size={15} /> Total</span><b>{FDL.fmtMoney(total)}</b></div>
           <div><span>Anticipo / seña</span><b>{ant > 0 ? FDL.fmtMoney(ant) + (r.pagadoDepositoA ? " · " + r.pagadoDepositoA : "") : "—"}</b></div>
           <div><span>Saldo pendiente</span><b style={{ color: saldoPend > 0 ? "oklch(0.55 0.12 40)" : "var(--ink)" }}>{FDL.fmtMoney(saldoPend)}</b></div>

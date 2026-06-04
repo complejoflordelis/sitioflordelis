@@ -3,8 +3,11 @@
 import React from "react";
 import { supabase, isConfigured } from "../lib/supabaseClient";
 import { Icon, Badge } from "../components/ui";
+import { useAuth } from "../auth/AuthProvider";
 
 export function Usuarios() {
+  const auth = useAuth();
+  const miId = auth && auth.session ? auth.session.user.id : null;
   const [lista, setLista] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [form, setForm] = React.useState({ email: "", nombre: "", password: "", rol: "operador" });
@@ -38,6 +41,29 @@ export function Usuarios() {
 
   async function toggleActivo(p) {
     await supabase.from("profiles").update({ activo: !p.activo }).eq("id", p.id);
+    cargar();
+  }
+
+  function setCampo(id, campo, val) {
+    setLista((prev) => prev.map((x) => (x.id === id ? { ...x, [campo]: val } : x)));
+  }
+  async function guardarNombre(p) {
+    const { error } = await supabase.from("profiles").update({ nombre: p.nombre }).eq("id", p.id);
+    if (error) setMsg({ tipo: "err", txt: error.message });
+  }
+  async function guardarRol(p, rol) {
+    setCampo(p.id, "rol", rol);
+    const { error } = await supabase.from("profiles").update({ rol }).eq("id", p.id);
+    if (error) setMsg({ tipo: "err", txt: error.message });
+  }
+  async function eliminar(p) {
+    if (!window.confirm("¿Eliminar a " + (p.nombre || p.email) + "? Esta acción no se puede deshacer.")) return;
+    const { data, error } = await supabase.functions.invoke("admin-delete-user", { body: { id: p.id } });
+    if (error || (data && data.error)) {
+      setMsg({ tipo: "err", txt: (data && data.error) || "No se pudo eliminar el usuario." });
+      return;
+    }
+    setMsg({ tipo: "ok", txt: "Usuario eliminado." });
     cargar();
   }
 
@@ -101,27 +127,35 @@ export function Usuarios() {
         <div className="card">
           <div className="card-title"><Icon.users size={18} /> Personal ({lista.length})</div>
           {loading ? <div className="muted">Cargando…</div> : (
-            <div className="modal-rows">
-              {lista.map((p) => (
-                <div key={p.id} style={{ alignItems: "center" }}>
-                  <span style={{ flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
-                    <b style={{ color: "var(--ink)" }}>{p.nombre || p.email}</b>
-                    <span style={{ fontSize: 12, color: "var(--ink-faint)", fontWeight: 500 }}>{p.email}</span>
-                  </span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    {p.rol === "admin"
-                      ? <Badge tone="gold"><Icon.shield size={12} /> Admin</Badge>
-                      : <Badge tone="neutral">Operador</Badge>}
-                    {p.activo === false
-                      ? <Badge tone="danger">Inactivo</Badge>
-                      : <Badge tone="ok">Activo</Badge>}
-                    <button className="btn-soft" style={{ height: 32, padding: "0 10px" }} onClick={() => toggleActivo(p)}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {lista.map((p) => {
+                const esYo = p.id === miId;
+                return (
+                  <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap", padding: "12px 0", borderTop: "1px solid var(--line)" }}>
+                    <div style={{ flex: "1 1 170px", minWidth: 0 }}>
+                      <input className="inp" style={{ height: 38 }} value={p.nombre || ""} placeholder="Nombre"
+                        onChange={(e) => setCampo(p.id, "nombre", e.target.value)} onBlur={() => guardarNombre(p)} />
+                      <div style={{ fontSize: 12, color: "var(--ink-faint)", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 }}>
+                        {p.email}
+                        {p.activo === false && <Badge tone="danger">Inactivo</Badge>}
+                        {esYo && <Badge tone="gold">Vos</Badge>}
+                      </div>
+                    </div>
+                    <select className="inp" style={{ height: 38, width: 134, flexShrink: 0 }} value={p.rol} disabled={esYo}
+                      onChange={(e) => guardarRol(p, e.target.value)}>
+                      <option value="operador">Operador</option>
+                      <option value="admin">Administrador</option>
+                    </select>
+                    <button className="btn-soft" style={{ height: 38, flexShrink: 0 }} onClick={() => toggleActivo(p)}>
                       {p.activo === false ? "Activar" : "Desactivar"}
                     </button>
-                  </span>
-                </div>
-              ))}
-              {lista.length === 0 && <div className="muted">Todavía no hay usuarios.</div>}
+                    {!esYo && (
+                      <button className="row-del" title="Eliminar usuario" onClick={() => eliminar(p)}><Icon.trash size={16} /></button>
+                    )}
+                  </div>
+                );
+              })}
+              {lista.length === 0 && <div className="muted" style={{ paddingTop: 10 }}>Todavía no hay usuarios.</div>}
             </div>
           )}
         </div>
