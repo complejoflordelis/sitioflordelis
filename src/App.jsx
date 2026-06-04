@@ -46,6 +46,8 @@ export function App() {
   const auth = useAuth();
   const data = useData(auth);
   const [route, setRoute] = React.useState("inicio");
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  function ir(k) { setRoute(k); setMenuOpen(false); }
 
   if (!auth.ready) return <Splash />;
   if (isConfigured && !auth.session) return <Login />;
@@ -71,16 +73,28 @@ export function App() {
 
   const pendientes = data.reservas.filter((r) => FDL.saldo(r) > 0).length;
 
+  const tituloActual = (allItems.find((it) => it.k === vista) || {}).t || "Flor de Lis";
+
   return (
-    <div className="app">
+    <div className={"app" + (menuOpen ? " menu-open" : "")}>
+      <header className="topbar">
+        <button className="hamb" onClick={() => setMenuOpen(true)} aria-label="Abrir menú"><Icon.menu size={22} /></button>
+        <span className="topbar-title">{tituloActual}</span>
+        <button className="hamb" onClick={() => ir("registrar")} aria-label="Registrar reserva" style={{ marginLeft: "auto" }}><Icon.plus size={22} /></button>
+      </header>
+      <div className="scrim" onClick={() => setMenuOpen(false)} />
+
       <aside className="sidebar">
-        <div className="side-brand"><BrandMark /></div>
+        <div className="side-brand" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <BrandMark />
+          <button className="hamb only-mobile" onClick={() => setMenuOpen(false)} aria-label="Cerrar menú"><Icon.x size={20} /></button>
+        </div>
         <nav className="side-nav">
           {items.map((it) => {
             const I = Icon[it.ico];
             const active = vista === it.k;
             return (
-              <button key={it.k} className={"nav-item" + (active ? " active" : "")} onClick={() => setRoute(it.k)}>
+              <button key={it.k} className={"nav-item" + (active ? " active" : "")} onClick={() => ir(it.k)}>
                 <I size={19} /> <span>{it.t}</span>
                 {it.k === "registrar" && <span className="nav-plus">+</span>}
               </button>

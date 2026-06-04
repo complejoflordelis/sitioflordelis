@@ -83,6 +83,7 @@ export const Icon = {
   camera:    (p) => <Ico {...p}><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.2"/></Ico>,
   wallet:    (p) => <Ico {...p}><path d="M3 7a2 2 0 0 1 2-2h11v4M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6"/><circle cx="17" cy="13" r="1.2"/></Ico>,
   mail:      (p) => <Ico {...p}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 7l8 6 8-6"/></Ico>,
+  menu:      (p) => <Ico {...p}><path d="M4 7h16M4 12h16M4 17h16"/></Ico>,
 };
 
 // ---------- Tooltip de ayuda (hover) ----------
