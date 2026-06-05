@@ -55,7 +55,7 @@ export function App() {
   if (data.loading) return <Splash texto="Cargando datos…" />;
 
   // El operador solo accede a estas secciones; el admin ve todo.
-  const OPERADOR_ROUTES = ["inicio", "registrar", "calendario"];
+  const OPERADOR_ROUTES = ["inicio", "registrar", "calendario", "gastos"];
   const allItems = [
     { k: "inicio", t: "Inicio", ico: "home" },
     { k: "dashboard", t: "Dashboard", ico: "dashboard" },
@@ -139,7 +139,7 @@ export function App() {
         {vista === "dashboard" && auth.isAdmin && <Dashboard cabanas={data.cabanas} reservas={data.reservas} />}
         {vista === "reservas" && auth.isAdmin && <ReservasTable cabanas={data.cabanas} reservas={data.reservas} onUpdate={data.updateReserva} onDelete={data.deleteReserva} />}
         {vista === "cabanas" && auth.isAdmin && <Cabanas cabanas={data.cabanas} reservas={data.reservas} onAdd={data.addCabana} onUpdate={data.updateCabana} onDelete={data.deleteCabana} />}
-        {vista === "gastos" && auth.isAdmin && <Gastos cabanas={data.cabanas} gastos={data.gastos} onAdd={data.addGasto} onDelete={data.deleteGasto} uploadFactura={data.uploadFactura} facturaUrl={data.facturaUrl} />}
+        {vista === "gastos" && <Gastos cabanas={data.cabanas} gastos={data.gastos} onAdd={data.addGasto} onDelete={data.deleteGasto} uploadFactura={data.uploadFactura} facturaUrl={data.facturaUrl} />}
         {vista === "rendicion" && auth.isAdmin && <Rendicion reservas={data.reservas} cabanas={data.cabanas} onRendir={data.rendirAdministracion} />}
         {vista === "usuarios" && auth.isAdmin && <Usuarios />}
       </main>
