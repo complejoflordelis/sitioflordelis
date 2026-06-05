@@ -51,10 +51,23 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function signIn(email, password) {
+  // Acepta email ("tiene @") o nombre de usuario (se resuelve por Edge Function).
+  async function signIn(login, password) {
     if (!isConfigured) return { error: null };
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    return { error };
+    const id = (login || "").trim();
+    if (id.indexOf("@") !== -1) {
+      const { error } = await supabase.auth.signInWithPassword({ email: id, password });
+      return { error };
+    }
+    // Username: resolver + autenticar del lado servidor.
+    const { data, error } = await supabase.functions.invoke("login-usuario", { body: { login: id, password } });
+    if (error) return { error: { message: "No se pudo iniciar sesión." } };
+    if (data && data.error) return { error: { message: data.error } };
+    if (data && data.access_token) {
+      const { error: e2 } = await supabase.auth.setSession({ access_token: data.access_token, refresh_token: data.refresh_token });
+      return { error: e2 };
+    }
+    return { error: { message: "Usuario o contraseña incorrectos." } };
   }
 
   async function signOut() {

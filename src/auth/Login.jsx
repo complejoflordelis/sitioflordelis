@@ -15,7 +15,7 @@ export function Login() {
     setErr(""); setBusy(true);
     const { error } = await signIn(email, pass);
     setBusy(false);
-    if (error) setErr("No pudimos iniciar sesión. Revisá el email y la contraseña.");
+    if (error) setErr(error.message || "No pudimos iniciar sesión. Revisá tus datos.");
   }
 
   return (
@@ -25,10 +25,11 @@ export function Login() {
         <h1 style={{ fontFamily: "var(--serif)", fontSize: 22, fontWeight: 600, textAlign: "center", margin: "0 0 4px" }}>Gestión de reservas</h1>
         <p className="sub" style={{ textAlign: "center", margin: "0 0 22px", color: "var(--ink-faint)" }}>Acceso del personal</p>
 
-        <label className="lbl">Email</label>
+        <label className="lbl">Usuario o email</label>
         <div style={{ position: "relative", marginBottom: 14 }}>
           <div className="fld-icon"><Icon.user size={16} /></div>
-          <input className="inp has-icon" type="email" autoComplete="username" placeholder="tu@email.com"
+          <input className="inp has-icon" type="text" autoComplete="username" autoCapitalize="none" spellCheck="false"
+            placeholder="tu usuario o tu@email.com"
             value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
 

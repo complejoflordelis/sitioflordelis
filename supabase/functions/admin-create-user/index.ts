@@ -38,9 +38,16 @@ Deno.serve(async (req) => {
     }
 
     // 2) Crear el usuario.
-    const { email, password, nombre, rol } = await req.json();
+    const { email, password, nombre, rol, username } = await req.json();
     if (!email || !password) return json({ error: "Faltan email o contraseña" }, 400);
     if (String(password).length < 6) return json({ error: "La contraseña debe tener al menos 6 caracteres" }, 400);
+
+    const uname = username ? String(username).trim() : null;
+    if (uname) {
+      const pat = uname.replace(/([%_\\])/g, "\\$1");
+      const { data: dup } = await admin.from("profiles").select("id").ilike("username", pat).maybeSingle();
+      if (dup) return json({ error: "Ese nombre de usuario ya está en uso" }, 400);
+    }
 
     const { data: created, error: cerr } = await admin.auth.admin.createUser({
       email,
@@ -50,15 +57,17 @@ Deno.serve(async (req) => {
     });
     if (cerr) return json({ error: cerr.message }, 400);
 
-    // 3) Fijar el rol/nombre solicitados (el trigger ya creó el perfil base).
+    // 3) Fijar el rol/nombre/usuario solicitados (el trigger ya creó el perfil base).
     const rolFinal = rol === "admin" ? "admin" : "operador";
-    await admin.from("profiles").upsert({
+    const { error: perr } = await admin.from("profiles").upsert({
       id: created.user!.id,
       email,
       nombre: nombre || email,
+      username: uname,
       rol: rolFinal,
       activo: true,
     });
+    if (perr) return json({ error: perr.message }, 400);
 
     return json({ ok: true, id: created.user!.id });
   } catch (e) {

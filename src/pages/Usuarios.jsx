@@ -10,7 +10,7 @@ export function Usuarios() {
   const miId = auth && auth.session ? auth.session.user.id : null;
   const [lista, setLista] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const [form, setForm] = React.useState({ email: "", nombre: "", password: "", rol: "operador" });
+  const [form, setForm] = React.useState({ email: "", nombre: "", username: "", password: "", rol: "operador" });
   const [msg, setMsg] = React.useState(null);
   const [busy, setBusy] = React.useState(false);
 
@@ -35,7 +35,7 @@ export function Usuarios() {
       return;
     }
     setMsg({ tipo: "ok", txt: "Usuario creado: " + form.email });
-    setForm({ email: "", nombre: "", password: "", rol: "operador" });
+    setForm({ email: "", nombre: "", username: "", password: "", rol: "operador" });
     cargar();
   }
 
@@ -50,6 +50,11 @@ export function Usuarios() {
   async function guardarNombre(p) {
     const { error } = await supabase.from("profiles").update({ nombre: p.nombre }).eq("id", p.id);
     if (error) setMsg({ tipo: "err", txt: error.message });
+  }
+  async function guardarUsername(p) {
+    const { error } = await supabase.from("profiles").update({ username: p.username ? p.username : null }).eq("id", p.id);
+    if (error) setMsg({ tipo: "err", txt: /duplicate|unique/i.test(error.message) ? "Ese nombre de usuario ya está en uso." : error.message });
+    else setMsg({ tipo: "ok", txt: "Usuario actualizado." });
   }
   async function guardarRol(p, rol) {
     setCampo(p.id, "rol", rol);
@@ -89,10 +94,17 @@ export function Usuarios() {
         <div className="card">
           <div className="card-title"><Icon.plus size={18} /> Crear usuario</div>
           <form onSubmit={crear}>
-            <div style={{ marginBottom: 14 }}>
-              <label className="lbl">Nombre</label>
-              <input className="inp" value={form.nombre} placeholder="Ej: Recepción"
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
+            <div className="row-2" style={{ marginBottom: 14 }}>
+              <div>
+                <label className="lbl">Nombre</label>
+                <input className="inp" value={form.nombre} placeholder="Ej: Recepción"
+                  onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
+              </div>
+              <div>
+                <label className="lbl">Usuario <span style={{ color: "var(--ink-faint)", fontWeight: 500 }}>(para login)</span></label>
+                <input className="inp" value={form.username} placeholder="Ej: recepcion" autoCapitalize="none" spellCheck="false"
+                  onChange={(e) => setForm({ ...form, username: e.target.value.replace(/\s/g, "") })} />
+              </div>
             </div>
             <div style={{ marginBottom: 14 }}>
               <label className="lbl">Email</label>
@@ -132,10 +144,16 @@ export function Usuarios() {
                 const esYo = p.id === miId;
                 return (
                   <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap", padding: "12px 0", borderTop: "1px solid var(--line)" }}>
-                    <div style={{ flex: "1 1 170px", minWidth: 0 }}>
+                    <div style={{ flex: "1 1 200px", minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
                       <input className="inp" style={{ height: 38 }} value={p.nombre || ""} placeholder="Nombre"
                         onChange={(e) => setCampo(p.id, "nombre", e.target.value)} onBlur={() => guardarNombre(p)} />
-                      <div style={{ fontSize: 12, color: "var(--ink-faint)", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{ position: "relative" }}>
+                        <div className="fld-icon"><Icon.user size={14} /></div>
+                        <input className="inp has-icon" style={{ height: 34, fontSize: 13 }} value={p.username || ""} placeholder="usuario (para login)"
+                          autoCapitalize="none" spellCheck="false"
+                          onChange={(e) => setCampo(p.id, "username", e.target.value.replace(/\s/g, ""))} onBlur={() => guardarUsername(p)} />
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--ink-faint)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 }}>
                         {p.email}
                         {p.activo === false && <Badge tone="danger">Inactivo</Badge>}
                         {esYo && <Badge tone="gold">Vos</Badge>}
