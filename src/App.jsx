@@ -7,6 +7,7 @@ import { Login } from "./auth/Login";
 import { useData } from "./data/useData";
 import { BrandMark, Icon } from "./components/ui";
 import { Inicio } from "./pages/Inicio";
+import { Solicitudes } from "./pages/Solicitudes";
 import { Dashboard } from "./pages/Dashboard";
 import { ReservaForm } from "./pages/ReservaForm";
 import { Calendario } from "./pages/Calendario";
@@ -58,6 +59,7 @@ export function App() {
   const OPERADOR_ROUTES = ["inicio", "registrar", "calendario", "gastos"];
   const allItems = [
     { k: "inicio", t: "Inicio", ico: "home" },
+    { k: "solicitudes", t: "Solicitudes", ico: "mail" },
     { k: "dashboard", t: "Dashboard", ico: "dashboard" },
     { k: "registrar", t: "Registrar reserva", ico: "plus" },
     { k: "calendario", t: "Calendario", ico: "calendar" },
@@ -72,6 +74,7 @@ export function App() {
   const vista = auth.isAdmin || OPERADOR_ROUTES.includes(route) ? route : "inicio";
 
   const pendientes = data.reservas.filter((r) => FDL.saldo(r) > 0).length;
+  const solPendientes = data.solicitudes.filter((s) => s.estado !== "atendida").length;
 
   const tituloActual = (allItems.find((it) => it.k === vista) || {}).t || "Flor de Lis";
 
@@ -98,6 +101,7 @@ export function App() {
               <button key={it.k} className={"nav-item" + (active ? " active" : "")} onClick={() => ir(it.k)}>
                 <I size={19} /> <span>{it.t}</span>
                 {it.k === "registrar" && <span className="nav-plus">+</span>}
+                {it.k === "solicitudes" && solPendientes > 0 && <span className="nav-plus" style={{ background: "var(--gold)", color: "oklch(0.3 0.06 80)" }}>{solPendientes}</span>}
               </button>
             );
           })}
@@ -136,6 +140,7 @@ export function App() {
         {vista === "inicio" && <Inicio cabanas={data.cabanas} reservas={data.reservas} onPatch={data.patchReserva} onDelete={data.deleteReserva} />}
         {vista === "registrar" && <ReservaForm cabanas={data.cabanas} reservas={data.reservas} onSave={(r) => data.addReserva({ ...r, creadoPor: (auth.profile && (auth.profile.nombre || auth.profile.email)) || "" })} />}
         {vista === "calendario" && <Calendario cabanas={data.cabanas} reservas={data.reservas} onDelete={data.deleteReserva} />}
+        {vista === "solicitudes" && auth.isAdmin && <Solicitudes solicitudes={data.solicitudes} onAtender={data.atenderSolicitud} onDelete={data.deleteSolicitud} />}
         {vista === "dashboard" && auth.isAdmin && <Dashboard cabanas={data.cabanas} reservas={data.reservas} />}
         {vista === "reservas" && auth.isAdmin && <ReservasTable cabanas={data.cabanas} reservas={data.reservas} onUpdate={data.updateReserva} onDelete={data.deleteReserva} />}
         {vista === "cabanas" && auth.isAdmin && <Cabanas cabanas={data.cabanas} reservas={data.reservas} onAdd={data.addCabana} onUpdate={data.updateCabana} onDelete={data.deleteCabana} />}

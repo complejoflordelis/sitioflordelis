@@ -29,6 +29,7 @@ export function useData(auth) {
   const [cabanas, setCabanas] = React.useState([]);
   const [reservas, setReservas] = React.useState([]);
   const [gastos, setGastos] = React.useState([]);
+  const [solicitudes, setSolicitudes] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
 
@@ -62,10 +63,12 @@ export function useData(auth) {
         if (e3) throw e3;
         const { data: gasRows, error: e4 } = await supabase.from("gastos").select("*").order("fecha", { ascending: false });
         if (e4) throw e4;
+        const { data: solRows } = await supabase.from("solicitudes").select("*").order("created_at", { ascending: false });
         if (!alive) return;
         setCabanas((cabRows || []).map(cabanaFromRow));
         setReservas((resRows || []).map(reservaFromRow));
         setGastos((gasRows || []).map(gastoFromRow));
+        setSolicitudes(solRows || []);
         setLoading(false);
       } catch (err) {
         if (!alive) return;
@@ -212,6 +215,23 @@ export function useData(auth) {
     return data.signedUrl;
   }
 
+  // ---------- Solicitudes (de la página pública) ----------
+  async function atenderSolicitud(id, estado) {
+    const nuevo = estado || "atendida";
+    setSolicitudes((prev) => prev.map((s) => (s.id === id ? { ...s, estado: nuevo } : s)));
+    if (isConfigured) {
+      const { error: e } = await supabase.from("solicitudes").update({ estado: nuevo }).eq("id", id);
+      if (e) setError(e.message);
+    }
+  }
+  async function deleteSolicitud(id) {
+    setSolicitudes((prev) => prev.filter((s) => s.id !== id));
+    if (isConfigured) {
+      const { error: e } = await supabase.from("solicitudes").delete().eq("id", id);
+      if (e) setError(e.message);
+    }
+  }
+
   // ---------- Demo (solo modo local) ----------
   function resetDemo() {
     if (isConfigured) return;
@@ -221,10 +241,11 @@ export function useData(auth) {
   }
 
   return {
-    cabanas, reservas, gastos, loading, error,
+    cabanas, reservas, gastos, solicitudes, loading, error,
     addReserva, updateReserva, patchReserva, deleteReserva, rendirAdministracion,
     addCabana, updateCabana, deleteCabana,
     addGasto, deleteGasto, uploadFactura, facturaUrl,
+    atenderSolicitud, deleteSolicitud,
     resetDemo,
   };
 }
