@@ -1,7 +1,7 @@
 /* Flor de Lis — Solicitudes de reserva (llegan desde la página pública). */
 import React from "react";
 import * as FDL from "../lib/fdl";
-import { Icon, Badge } from "../components/ui";
+import { Icon, Badge, PaxMini } from "../components/ui";
 import { normalizarCel } from "../lib/whatsapp";
 
 function waCliente(s) {
@@ -27,7 +27,10 @@ function Tarjeta({ s, onAtender, onDelete }) {
       <div style={{ fontWeight: 700, fontSize: 16, color: "var(--ink)" }}>{[s.nombre, s.apellido].filter(Boolean).join(" ") || "—"}</div>
       <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, color: "var(--ink-soft)", fontWeight: 600, flexWrap: "wrap" }}>
         <Icon.calendar size={14} /> {FDL.fmtFechaCorta(s.fecha_inicio)} → {FDL.fmtFechaCorta(s.fecha_fin)} · {noches}n
-        {s.late_checkin && <Badge tone="warn"><Icon.clock size={11} /> Late check-in</Badge>}
+        {s.late_checkout && <Badge tone="warn"><Icon.clock size={11} /> Late check-out</Badge>}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, color: "var(--ink-soft)" }}>
+        <Icon.users size={14} /> <PaxMini adultos={s.adultos || 0} menores={s.menores || 0} />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, color: "var(--ink-soft)" }}>
         <span style={{ display: "flex", alignItems: "center", gap: 7 }}><Icon.phone size={14} /> {s.telefono || "—"}</span>

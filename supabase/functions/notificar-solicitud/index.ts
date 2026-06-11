@@ -27,13 +27,15 @@ Deno.serve(async (req) => {
     const s = await req.json();
     const nombre = [s.nombre, s.apellido].filter(Boolean).join(" ") || "Cliente";
     const fechas = (s.fecha_inicio || "?") + " → " + (s.fecha_fin || "?");
+    const pax = (Number(s.adultos) || 0) + " adulto(s)" + ((Number(s.menores) || 0) > 0 ? " + " + s.menores + " menor(es)" : "");
     const lineas = [
       "Nueva solicitud de reserva — Flor de Lis", "",
       "Cliente: " + nombre,
       "Teléfono: " + (s.telefono || "—"),
       "Email: " + (s.email || "—"),
       "Fechas: " + fechas,
-      "Late check-in: " + (s.late_checkin ? "Sí" : "No"),
+      "Personas: " + pax,
+      "Late check-out: " + (s.late_checkout ? "Sí" : "No"),
     ];
     if (s.comentario) lineas.push("Comentario: " + s.comentario);
     const texto = lineas.join("\n");
@@ -42,7 +44,8 @@ Deno.serve(async (req) => {
       "<b>Teléfono:</b> " + esc(s.telefono || "—") + "<br>" +
       "<b>Email:</b> " + esc(s.email || "—") + "<br>" +
       "<b>Fechas:</b> " + esc(fechas) + "<br>" +
-      "<b>Late check-in:</b> " + (s.late_checkin ? "Sí" : "No") +
+      "<b>Personas:</b> " + esc(pax) + "<br>" +
+      "<b>Late check-out:</b> " + (s.late_checkout ? "Sí" : "No") +
       (s.comentario ? "<br><b>Comentario:</b> " + esc(s.comentario) : "") + "</p>";
 
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");

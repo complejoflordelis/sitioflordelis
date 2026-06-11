@@ -70,8 +70,18 @@ function Campo({ label, children }) {
   );
 }
 
+function Stepper({ value, min, onChange }) {
+  return (
+    <div className="stepper">
+      <button type="button" onClick={() => onChange(Math.max(min || 0, value - 1))} aria-label="menos">–</button>
+      <span>{value}</span>
+      <button type="button" onClick={() => onChange(value + 1)} aria-label="más">+</button>
+    </div>
+  );
+}
+
 export function SolicitudPublica() {
-  const [f, setF] = React.useState({ nombre: "", apellido: "", telefono: "", email: "", late: false, comentario: "" });
+  const [f, setF] = React.useState({ nombre: "", apellido: "", telefono: "", email: "", adultos: 2, menores: 0, late: false, comentario: "" });
   const [rango, setRango] = React.useState({ ini: "", fin: "" });
   const [busy, setBusy] = React.useState(false);
   const [err, setErr] = React.useState("");
@@ -87,7 +97,8 @@ export function SolicitudPublica() {
     setErr(""); setBusy(true);
     const payload = {
       nombre: f.nombre.trim(), apellido: f.apellido.trim(), telefono: f.telefono.trim(), email: f.email.trim(),
-      fecha_inicio: rango.ini, fecha_fin: rango.fin, late_checkin: f.late, comentario: f.comentario.trim() || null,
+      fecha_inicio: rango.ini, fecha_fin: rango.fin, adultos: Number(f.adultos) || 0, menores: Number(f.menores) || 0,
+      late_checkout: f.late, comentario: f.comentario.trim() || null,
     };
     if (!isConfigured) { setBusy(false); setEnviado(true); return; }
     const { error } = await supabase.from("solicitudes").insert(payload);
@@ -138,9 +149,18 @@ export function SolicitudPublica() {
           </Campo>
         </div>
 
+        <div className="row-2">
+          <Campo label="Adultos">
+            <Stepper value={Number(f.adultos) || 0} min={1} onChange={(v) => set("adultos", v)} />
+          </Campo>
+          <Campo label="Menores">
+            <Stepper value={Number(f.menores) || 0} min={0} onChange={(v) => set("menores", v)} />
+          </Campo>
+        </div>
+
         <label className="pub-check">
           <input type="checkbox" checked={f.late} onChange={(e) => set("late", e.target.checked)} />
-          <span><b>Late check-in</b> — voy a llegar más tarde del horario habitual</span>
+          <span><b>Late check-out</b> — necesito irme más tarde del horario de salida</span>
         </label>
 
         <div style={{ height: 1, background: "var(--line)", margin: "18px 0" }} />
