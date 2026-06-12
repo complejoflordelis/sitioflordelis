@@ -105,6 +105,25 @@ export function ReservaForm(props) {
     }
   }, [totalCalc]);
 
+  // Pre-cargar desde una solicitud del cliente (botón "Crear reserva").
+  React.useEffect(() => {
+    const p = props.prefill;
+    if (!p) return;
+    setF(Object.assign(empty(), {
+      nombre: p.nombre || "",
+      celular: p.celular || "",
+      email: p.email || "",
+      inicioEstadia: p.inicioEstadia || "",
+      finEstadia: p.finEstadia || "",
+      adultos: p.adultos != null ? p.adultos : 2,
+      menores: p.menores != null ? p.menores : 0,
+      notas: p.notas || "",
+    }));
+    anticipoTouched.current = false;
+    if (props.onPrefillConsumed) props.onPrefillConsumed();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.prefill]);
+
   function limpiar() { anticipoTouched.current = false; setF(empty()); }
 
   function guardar() {
@@ -140,7 +159,7 @@ export function ReservaForm(props) {
                 {cabana && <div className="fld-icon" style={{ left: 13 }}><span style={{ width: 11, height: 11, borderRadius: 3, background: FDL.CABANA_COLORS[cabana.color].strong, display: "block" }}></span></div>}
                 <select className={"inp sel-cab" + (cabana ? " has-icon" : "")}
                   value={f.cabanaId}
-                  onChange={(e) => { set("cabanaId", e.target.value); set("inicioEstadia", ""); set("finEstadia", ""); }}>
+                  onChange={(e) => set("cabanaId", e.target.value)}>
                   <option value="">Elegí una cabaña…</option>
                   {cabanas.map((c) => (
                     <option key={c.id} value={c.id}>{c.nombre} · hasta {c.maxPersonas} pers.</option>

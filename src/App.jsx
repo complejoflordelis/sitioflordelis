@@ -50,13 +50,31 @@ export function App() {
   const [menuOpen, setMenuOpen] = React.useState(false);
   function ir(k) { setRoute(k); setMenuOpen(false); }
 
+  // Pre-cargar el formulario de reserva con los datos de una solicitud.
+  const [prefill, setPrefill] = React.useState(null);
+  function crearReservaDesde(s) {
+    setPrefill({
+      _id: s.id,
+      nombre: [s.nombre, s.apellido].filter(Boolean).join(" "),
+      celular: s.telefono || "",
+      email: s.email || "",
+      inicioEstadia: s.fecha_inicio || "",
+      finEstadia: s.fecha_fin || "",
+      adultos: s.adultos != null ? s.adultos : 2,
+      menores: s.menores != null ? s.menores : 0,
+      notas: (s.late_checkout ? "Cliente pidió late check-out. " : "") + (s.comentario || ""),
+    });
+    data.atenderSolicitud(s.id, "atendida");
+    ir("registrar");
+  }
+
   if (!auth.ready) return <Splash />;
   if (isConfigured && !auth.session) return <Login />;
   if (isConfigured && auth.session && !auth.isActive) return <Bloqueado onSalir={auth.signOut} />;
   if (data.loading) return <Splash texto="Cargando datos…" />;
 
   // El operador solo accede a estas secciones; el admin ve todo.
-  const OPERADOR_ROUTES = ["inicio", "registrar", "calendario", "gastos"];
+  const OPERADOR_ROUTES = ["inicio", "solicitudes", "registrar", "calendario", "gastos"];
   const allItems = [
     { k: "inicio", t: "Inicio", ico: "home" },
     { k: "solicitudes", t: "Solicitudes", ico: "mail" },
@@ -138,9 +156,9 @@ export function App() {
           </div>
         )}
         {vista === "inicio" && <Inicio cabanas={data.cabanas} reservas={data.reservas} onPatch={data.patchReserva} onDelete={data.deleteReserva} />}
-        {vista === "registrar" && <ReservaForm cabanas={data.cabanas} reservas={data.reservas} onSave={(r) => data.addReserva({ ...r, creadoPor: (auth.profile && (auth.profile.nombre || auth.profile.email)) || "" })} />}
+        {vista === "registrar" && <ReservaForm cabanas={data.cabanas} reservas={data.reservas} prefill={prefill} onPrefillConsumed={() => setPrefill(null)} onSave={(r) => data.addReserva({ ...r, creadoPor: (auth.profile && (auth.profile.nombre || auth.profile.email)) || "" })} />}
         {vista === "calendario" && <Calendario cabanas={data.cabanas} reservas={data.reservas} onDelete={data.deleteReserva} />}
-        {vista === "solicitudes" && auth.isAdmin && <Solicitudes solicitudes={data.solicitudes} onAtender={data.atenderSolicitud} onDelete={data.deleteSolicitud} />}
+        {vista === "solicitudes" && <Solicitudes solicitudes={data.solicitudes} onAtender={data.atenderSolicitud} onDelete={data.deleteSolicitud} onCrearReserva={crearReservaDesde} />}
         {vista === "dashboard" && auth.isAdmin && <Dashboard cabanas={data.cabanas} reservas={data.reservas} />}
         {vista === "reservas" && auth.isAdmin && <ReservasTable cabanas={data.cabanas} reservas={data.reservas} onUpdate={data.updateReserva} onDelete={data.deleteReserva} />}
         {vista === "cabanas" && auth.isAdmin && <Cabanas cabanas={data.cabanas} reservas={data.reservas} onAdd={data.addCabana} onUpdate={data.updateCabana} onDelete={data.deleteCabana} />}

@@ -13,7 +13,7 @@ function waCliente(s) {
   return "https://wa.me/" + num + "?text=" + encodeURIComponent(msg);
 }
 
-function Tarjeta({ s, onAtender, onDelete }) {
+function Tarjeta({ s, onAtender, onDelete, onCrearReserva }) {
   const noches = s.fecha_inicio && s.fecha_fin ? FDL.diffDays(s.fecha_inicio, s.fecha_fin) : 0;
   const atendida = s.estado === "atendida";
   const wa = waCliente(s);
@@ -37,10 +37,11 @@ function Tarjeta({ s, onAtender, onDelete }) {
         <span style={{ display: "flex", alignItems: "center", gap: 7, overflow: "hidden", textOverflow: "ellipsis" }}><Icon.mail size={14} /> {s.email || "—"}</span>
       </div>
       {s.comentario && <div style={{ fontSize: 13, color: "var(--ink-soft)", background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: 10, padding: "8px 11px" }}>“{s.comentario}”</div>}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2, flexWrap: "wrap" }}>
+        <button className="btn-primary" style={{ height: 36, padding: "0 14px", fontSize: 13 }} onClick={() => onCrearReserva(s)}><Icon.plus size={15} /> Crear reserva</button>
         {wa && <a className="btn-soft" href={wa} target="_blank" rel="noreferrer" style={{ height: 36 }}><Icon.whatsapp size={15} /> Contactar</a>}
         <button className="btn-soft" style={{ height: 36 }} onClick={() => onAtender(s.id, atendida ? "pendiente" : "atendida")}>
-          {atendida ? "Reabrir" : <><Icon.check size={15} /> Marcar atendida</>}
+          {atendida ? "Reabrir" : <><Icon.check size={15} /> Atendida</>}
         </button>
         <button className="row-del" title="Eliminar" style={{ marginLeft: "auto" }} onClick={() => { if (confirm("¿Eliminar esta solicitud?")) onDelete(s.id); }}><Icon.trash size={15} /></button>
       </div>
@@ -48,7 +49,7 @@ function Tarjeta({ s, onAtender, onDelete }) {
   );
 }
 
-export function Solicitudes({ solicitudes, onAtender, onDelete }) {
+export function Solicitudes({ solicitudes, onAtender, onDelete, onCrearReserva }) {
   const [verTodas, setVerTodas] = React.useState(false);
   const pendientes = solicitudes.filter((s) => s.estado !== "atendida");
   const lista = verTodas ? solicitudes : pendientes;
@@ -65,7 +66,7 @@ export function Solicitudes({ solicitudes, onAtender, onDelete }) {
         <div className="hint-box" style={{ maxWidth: 520 }}>No hay solicitudes {verTodas ? "todavía" : "pendientes"}. 🌿</div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
-          {lista.map((s) => <Tarjeta key={s.id} s={s} onAtender={onAtender} onDelete={onDelete} />)}
+          {lista.map((s) => <Tarjeta key={s.id} s={s} onAtender={onAtender} onDelete={onDelete} onCrearReserva={onCrearReserva} />)}
         </div>
       )}
     </div>
